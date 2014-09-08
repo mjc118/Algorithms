@@ -1,0 +1,37 @@
+import random
+import math
+
+def modexp(x, y, N):
+    if y == 0:
+        return 1
+    z = modexp(x, math.floor(y / 2), N)
+    if y % 2 == 0:
+        return ((z **2) % N)
+    else:
+        return(x * (z **2) % N)
+
+def Fermat(Prime):
+    a = random.randint(2, Prime - 1)
+    #if(modexp(a, Prime - 1, Prime)) == 1:
+    if pow(a, Prime - 1, Prime) == 1:
+        return True
+    else:
+        return False
+
+def RandomP():
+    while True:
+        Prime = random.randrange(100000001,10000000000000000000 ,2)
+        TestsPassed = 0
+        for i in range(10):
+            if(Fermat(Prime)):
+                TestsPassed += 1
+            else:
+                break
+            if TestsPassed >= 5:
+              return Prime 
+
+
+for i in range(10):
+    print(RandomP())
+
+#print(P)
