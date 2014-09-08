@@ -1,6 +1,11 @@
 import random
 import math
 
+def main():
+    PrimeLength = int(input())
+    print(RandomP(PrimeLength))
+    return
+
 def modexp(x, y, N):
     if y == 0:
         return 1
@@ -18,11 +23,11 @@ def Fermat(Prime):
     else:
         return False
 
-def RandomP():
+def RandomP(LengthPrime):
     while True:
-        Prime = random.randrange(100000001,10000000000000000000 ,2)
+        Prime = random.randrange(pow(10,LengthPrime - 1) + 1, pow(10,LengthPrime), 2)
         TestsPassed = 0
-        for i in range(10):
+        for i in range(5):
             if(Fermat(Prime)):
                 TestsPassed += 1
             else:
@@ -30,8 +35,5 @@ def RandomP():
             if TestsPassed >= 5:
               return Prime 
 
-
-for i in range(10):
-    print(RandomP())
-
-#print(P)
+if __name__ == "__main__":
+    main()
