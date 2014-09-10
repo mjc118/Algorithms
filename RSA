@@ -11,9 +11,15 @@ def main():
         q = RandomP(PrimeLength)
         p = RandomP(PrimeLength)
     
-    n = p * q
+    n = p * q #our n, used to decode and encode message
     PhiN = (p - 1) * (q - 1)
-    e = RandomP(len(str(PhiN)) - 1)
+    
+    while True:
+        e = RandomP(random.randint(1, len(str(PhiN)) - 1))
+        GCD = egcd(e, PhiN)
+        if(GCD[0] == 1):
+            break
+
     d = modinv(e, PhiN)
     print("GCD:", egcd(e, PhiN))
     print("q:", q, "p:", p)
@@ -67,7 +73,10 @@ def RandomP(LengthPrime):
             else:
                 break
             if TestsPassed >= 5:
-              return Prime 
+              return Prime
+ 
+def RSAencrypt(e, n, message):
+    return Encrypted     
 
 if __name__ == "__main__":
     main()
