@@ -1,11 +1,29 @@
 import random
 import math
+import sys
 
 def main():
+    print("input length of desired prime")    
     PrimeLength = int(input())
-    print(RandomP(PrimeLength))
+    q = p = 0 #our prime numbers
+
+    while q == 0 or p == 0 or q == p:
+        q = RandomP(PrimeLength)
+        p = RandomP(PrimeLength)
+    
+    n = p * q
+    PhiN = (p - 1) * (q - 1)
+    e = RandomP(len(str(PhiN)) - 1)
+    d = modinv(e, PhiN)
+    print("GCD:", egcd(e, PhiN))
+    print("q:", q, "p:", p)
+    print("n:", n, "PhiN:", PhiN)
+    print("e:", e, " d:", d)
+    print((e * d) % PhiN)
+
     return
 
+#Not Used
 def modexp(x, y, N):
     if y == 0:
         return 1
@@ -14,6 +32,22 @@ def modexp(x, y, N):
         return ((z **2) % N)
     else:
         return(x * (z **2) % N)
+
+#Euclidean Extended Algorithm to find GCD
+def egcd(a, b):
+    if a == 0:
+        return(b, 0, 1)
+    else:
+        g, y , x = egcd(b % a, a)
+        return(g, x - (b // a) * y, y)
+
+#Modular Multiplicative Inverse
+def modinv(a, m):
+    gcd, x, y = egcd(a, m)
+    if gcd != 1:
+        return None
+    else:
+        return x % m
 
 def Fermat(Prime):
     a = random.randint(2, Prime - 1)
