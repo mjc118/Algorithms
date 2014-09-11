@@ -1,0 +1,31 @@
+import random
+
+def main():
+    DNAsequence = ""
+    DNAcomplement = ""
+    GeneSequence = ""
+    ComplementGeneSequence = ""
+    DNAbases = ['A', 'T', 'G', 'C']
+    BaseComplements = {'A':'T', 'T':'A', 'G':'C', 'C':'G'}
+
+    print("Specify the desired length of the randomly generated DNA sequence")
+    DNAlength = int(input())
+
+    for i in range(DNAlength):
+        DNAsequence = DNAsequence + DNAbases[random.randint(0,3)]
+    
+    for i in range(DNAlength):
+        DNAcomplement = DNAcomplement + BaseComplements[DNAsequence[i]]
+
+    StartPrimer = 10#index of where primer starts
+    DNAcomplement = DNAcomplement[::-1]#reverses string
+    GeneSequence = DNAsequence[StartPrimer:(StartPrimer + 10)]#+- 10 where 10 is length of gene sequence
+    ComplementGeneSequence = DNAcomplement[(DNAlength - StartPrimer - 10):(DNAlength - StartPrimer)]
+    print("GeneSequence:", GeneSequence)
+    print("ComplementGeneSequence:", ComplementGeneSequence)
+    print("DNA:",DNAsequence)
+    print("DNAcomplement:",DNAcomplement)
+    return
+    
+if __name__ == "__main__":
+    main()
