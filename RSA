@@ -5,6 +5,8 @@ import sys
 def main():
     print("input length of desired prime")    
     PrimeLength = int(input())
+    print("input desired message to be encrypted")
+    StrMessage = input()
     q = p = 0 #our prime numbers
 
     while q == 0 or p == 0 or q == p:
@@ -26,8 +28,14 @@ def main():
     print("n:", n, "PhiN:", PhiN)
     print("e:", e, " d:", d)
     print((e * d) % PhiN)
+    encryptedMSG = RSAencrypt(e,n, StrMessage)
+    MSGlist = RSAdecrypt(d, n, encryptedMSG)
+
+    for i in reversed(MSGlist):
+        sys.stdout.write(i)
 
     return
+    
 
 #Not Used
 def modexp(x, y, N):
@@ -76,7 +84,28 @@ def RandomP(LengthPrime):
               return Prime
  
 def RSAencrypt(e, n, message):
-    return Encrypted     
+    EncrypM = 0
+    exponent = len(message) - 1
+    incr = 0
+    while exponent >= 0:
+        EncrypM = EncrypM + (ord(message[incr]) * pow(128, exponent))
+        exponent = exponent - 1
+        incr = incr + 1
+
+    EncrypM = pow(EncrypM, e, n)
+    return EncrypM     
+
+def RSAdecrypt(d, n, message):
+    message = pow(message, d, n)
+    CharList = []
+
+    while True:
+        CharList.append(chr(message % 128))
+        message = int(message / 128)
+        if(message < 1):
+            break
+
+    return CharList
 
 if __name__ == "__main__":
     main()
