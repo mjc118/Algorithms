@@ -34,20 +34,11 @@ def main():
     for i in MSGlist:
         sys.stdout.write(i)
 
+    print("")
+
     return
-    
 
-#Not Used
-def modexp(x, y, N):
-    if y == 0:
-        return 1
-    z = modexp(x, math.floor(y / 2), N)
-    if y % 2 == 0:
-        return ((z **2) % N)
-    else:
-        return(x * (z **2) % N)
-
-#Euclidean Extended Algorithm to find GCD
+#Python implementation of Euclidean Extended Algorithm to find GCD
 def egcd(a, b):
     if a == 0:
         return(b, 0, 1)
@@ -55,7 +46,7 @@ def egcd(a, b):
         g, y , x = egcd(b % a, a)
         return(g, x - (b // a) * y, y)
 
-#Modular Multiplicative Inverse
+#Python implementation of Modular Multiplicative Inverse
 def modinv(a, m):
     gcd, x, y = egcd(a, m)
     if gcd != 1:
@@ -63,6 +54,7 @@ def modinv(a, m):
     else:
         return x % m
 
+#Python implementation of Fermat's Theorem
 def Fermat(Prime):
     a = random.randint(2, Prime - 1)
     #if(modexp(a, Prime - 1, Prime)) == 1:
@@ -71,6 +63,8 @@ def Fermat(Prime):
     else:
         return False
 
+#choses a random odd number between given range and tests if it is prime using Fermat's Theorem
+#(the number must pass Fermat's Test 5 times successively)
 def RandomP(LengthPrime):
     while True:
         Prime = random.randrange(pow(10,LengthPrime - 1) + 1, pow(10,LengthPrime), 2)
@@ -83,18 +77,16 @@ def RandomP(LengthPrime):
             if TestsPassed >= 5:
               return Prime
  
+#encrypts our message using method discussed in class
 def RSAencrypt(e, n, message):
-    EncrypM = 0
-    exponent = len(message) - 1
-    incr = 0
-    while exponent >= 0:
-        EncrypM = EncrypM + (ord(message[incr]) * pow(128, exponent))
-        exponent = exponent - 1
-        incr = incr + 1
-
+    EncrypM = ord(message[0])
+    for i in range(len(message) - 1):
+        EncrypM = 128 * EncrypM + ord(message[i + 1])
+    
     EncrypM = pow(EncrypM, e, n)
     return EncrypM     
 
+#decrypts our message using method discussed in class
 def RSAdecrypt(d, n, message):
     message = pow(message, d, n)
     CharList = []
