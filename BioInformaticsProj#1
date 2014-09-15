@@ -1,4 +1,5 @@
 import random
+import numpy
 
 def main():
     DNAsequence = ""
@@ -11,21 +12,55 @@ def main():
     print("Specify the desired length of the randomly generated DNA sequence")
     DNAlength = int(input())
 
+    #generate our initial strand
     for i in range(DNAlength):
         DNAsequence = DNAsequence + DNAbases[random.randint(0,3)]
     
+    #generate our complement strand
     for i in range(DNAlength):
         DNAcomplement = DNAcomplement + BaseComplements[DNAsequence[i]]
+    
+    #Find our initial strands primer
+    StartPrimer = random.randint(0, len(DNAsequence) - 200)
+    DNAprimer = DNAsequence[StartPrimer:StartPrimer + 10]
+    #Checks to make sure the primer found is unique, if not, add a character to it and check again till a unique one is found
+    incr = 1
+    while True:
+        if DNAsequence.count(DNAprimer) != 1:
+            DNAprimer = DNAsequence[StartPrimer:StartPrimer + 10 + incr]
+        else:
+            break
 
-    StartPrimer = 10#index of where primer starts
-    DNAcomplement = DNAcomplement[::-1]#reverses string
-    GeneSequence = DNAsequence[StartPrimer:(StartPrimer + 10)]#+- 10 where 10 is length of gene sequence
-    ComplementGeneSequence = DNAcomplement[(DNAlength - StartPrimer - 10):(DNAlength - StartPrimer)]
-    print("GeneSequence:", GeneSequence)
+    #specify our gene sequence based on the primer's position
+    DNAGeneSequence = DNAsequence[StartPrimer:StartPrimer + 200]
+    
+    #Find our complement strands primer
+    DNAcomplement = DNAcomplement[::-1]#reverses string(done so primer ends up on correct end
+    ComplementStartPrimer = DNAlength - StartPrimer - 200
+    ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer: ComplementStartPrimer + 10]
+    #Checks to make sure the primer found is unique, if not, add a character to it and check again till a unique one is found
+    incr = 1
+    while True:
+        if DNAcomplement.count(ComplementDNAPrimer) != 1:
+            ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 10 + incr]
+        else:
+            break
+
+    #specify ouru complement gene sequence based on it's primer's position
+    ComplementGeneSequence = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 200]
+    
+    #print("geometric:series")
+    #print(numpy.random.geometric(.00125, 10))
+    #for i in range(100):
+        #print(sorted(numpy.random.geometric(.00125,10)))
+    
+    print("GeneSequence:", DNAGeneSequence)
     print("ComplementGeneSequence:", ComplementGeneSequence)
     print("DNA:",DNAsequence)
-    print("DNAcomplement:",DNAcomplement)
+    print("DNAcomplement(reversed):",DNAcomplement)
+    print("Initial Primer: ", DNAprimer)
+    print("Initial Complement Primer: ", ComplementDNAPrimer)
     return
-    
+
 if __name__ == "__main__":
     main()
