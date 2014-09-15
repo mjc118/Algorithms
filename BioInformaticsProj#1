@@ -28,6 +28,7 @@ def main():
     while True:
         if DNAsequence.count(DNAprimer) != 1:
             DNAprimer = DNAsequence[StartPrimer:StartPrimer + 10 + incr]
+            incr = incr + 1
         else:
             break
 
@@ -43,6 +44,7 @@ def main():
     while True:
         if DNAcomplement.count(ComplementDNAPrimer) != 1:
             ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 10 + incr]
+            incr = incr + 1
         else:
             break
 
