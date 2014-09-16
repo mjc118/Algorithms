@@ -9,8 +9,8 @@ def main():
     DNAbases = ['A', 'T', 'G', 'C']
     BaseComplements = {'A':'T', 'T':'A', 'G':'C', 'C':'G'}
 
-    print("Specify the desired length of the randomly generated DNA sequence")
-    DNAlength = int(input())
+    #print("Specify the desired length of the randomly generated DNA sequence")
+    DNAlength = 2000
 
     #generate our initial strand
     for i in range(DNAlength):
@@ -51,17 +51,54 @@ def main():
     #specify ouru complement gene sequence based on it's primer's position
     ComplementGeneSequence = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 200]
     
-    #print("geometric:series")
-    #print(numpy.random.geometric(.00125, 10))
-    #for i in range(100):
-        #print(sorted(numpy.random.geometric(.00125,10)))
+    StrandList = []
+    FailureChance = .00125
+    DNAStrands = 2
+    DNAfragments = 0
+    Failures = 0
+    PCRCycles = 10
+    temp = 0
+    #numpy.random.geometric returns a list, hence appending index 0 of 'StrandLength'
+    #We must use a temp value to keep track of successes within our loop otherwise loop could be continuous
+    for i in range(PCRCycles):
+        DNAStrands = DNAStrands + temp
+        temp = 0
+        for j in range(DNAStrands):
+            StrandLength = numpy.random.geometric(FailureChance,1)
+            if(StrandLength[0] >= 2000):
+                StrandList.append(2000)
+                temp = temp + 1
+            elif(StrandLength[0] >= 200):
+                StrandList.append(StrandLength[0])
+                temp = temp + 1
+                DNAfragments = DNAfragments + 1
+            else:
+                StrandList.append(StrandLength[0])
+                DNAfragments = DNAfragments + 1
+                Failures = Failures + 1
+        #raise our failure chance for the next cycle
+        FailureChance = FailureChance + .00001
     
-    print("GeneSequence:", DNAGeneSequence)
-    print("ComplementGeneSequence:", ComplementGeneSequence)
-    print("DNA:",DNAsequence)
-    print("DNAcomplement(reversed):",DNAcomplement)
-    print("Initial Primer: ", DNAprimer)
-    print("Initial Complement Primer: ", ComplementDNAPrimer)
+    StrandList = sorted(StrandList)
+    file = open('DNA.txt','w')
+    file.write(' '.join(map(str, StrandList)))
+    file.write('\n')
+    file.write("DNAStrands (length >= 200): ")
+    file.write(str(DNAStrands))
+    file.write('\n')
+    file.write("DNAfragments (length < 2000): ")
+    file.write(str(DNAfragments))
+    file.write('\n')
+    file.write("Failures (length < 200): ")
+    file.write(str(Failures))
+    print(' '.join(map(str, StrandList)))
+    #print(sorted(StrandList))
+    #print("GeneSequence:", DNAGeneSequence)
+    #print("ComplementGeneSequence:", ComplementGeneSequence)
+    #print("DNA:",DNAsequence)
+    #print("DNAcomplement(reversed):",DNAcomplement)
+    #print("Initial Primer: ", DNAprimer)
+    #print("Initial Complement Primer: ", ComplementDNAPrimer)
     return
 
 if __name__ == "__main__":
