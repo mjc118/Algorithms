@@ -55,6 +55,7 @@ def main():
     FailureChance = .00125
     DNAStrands = 2
     DNAfragments = 0
+    Successes = 2
     Failures = 0
     PCRCycles = 10
     temp = 0
@@ -68,10 +69,12 @@ def main():
             if(StrandLength[0] >= 2000):
                 StrandList.append(2000)
                 temp = temp + 1
+                Successes = Successes + 1
             elif(StrandLength[0] >= 200):
                 StrandList.append(StrandLength[0])
                 temp = temp + 1
                 DNAfragments = DNAfragments + 1
+                Successes = Successes + 1
             else:
                 StrandList.append(StrandLength[0])
                 DNAfragments = DNAfragments + 1
@@ -83,14 +86,17 @@ def main():
     file = open('DNA.txt','w')
     file.write(' '.join(map(str, StrandList)))
     file.write('\n')
-    file.write("DNAStrands (length >= 200): ")
-    file.write(str(DNAStrands))
+    file.write("DNAStrands(Total # Failures + Successes): ")
+    file.write(str(Failures + Successes))
     file.write('\n')
     file.write("DNAfragments (length < 2000): ")
     file.write(str(DNAfragments))
     file.write('\n')
     file.write("Failures (length < 200): ")
     file.write(str(Failures))
+    file.write('\n')
+    file.write("Successes (Successful copies throughout entire process) (length >= 200): ")
+    file.write(str(Successes))
     print(' '.join(map(str, StrandList)))
     #print(sorted(StrandList))
     #print("GeneSequence:", DNAGeneSequence)
