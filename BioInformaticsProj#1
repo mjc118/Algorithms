@@ -52,7 +52,7 @@ def main():
     ComplementGeneSequence = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 200]
     
     StrandList = []
-    FailureChance = .00125
+    FailureChance = .00025
     DNAStrands = 2
     DNAfragments = 0
     Successes = 2
