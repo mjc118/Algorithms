@@ -3,38 +3,51 @@ import math
 import sys
 
 def main():
-    print("input length of desired prime")    
-    PrimeLength = int(input())
-    print("input desired message to be encrypted")
-    StrMessage = input()
-    q = p = 0 #our prime numbers
-
-    while q == 0 or p == 0 or q == p:
-        q = RandomP(PrimeLength)
-        p = RandomP(PrimeLength)
-    
-    n = p * q #our n, used to decode and encode message
-    PhiN = (p - 1) * (q - 1)
-    
     while True:
-        e = RandomP(random.randint(1, len(str(PhiN)) - 1))
-        GCD = egcd(e, PhiN)
-        if(GCD[0] == 1):
+        print("input space seperated parameters, ALL ON ONE LINE, based on the project grading outline")    
+        parameters = list(map(str,input().split(" ")))
+
+        parameterlength = len(parameters)
+        #needed so we dont' try to convert a word to an int, which throws an error
+        if(parameters[0] == 'e'):
+            parameterlength = parameterlength - 1
+        #needed because you can not convert a letter to an int(issue with inputs containing 'e', 'd')
+        for i in range(parameterlength):
+            if(parameters[i] != 'e' and parameters[i] != 'd'):
+                parameters[i] = int(parameters[i])
+
+        #undoing previous operation so pseudo switch statement works correctly
+        if(parameters[0] == 'e'):
+            parameterlength = parameterlength + 1
+
+        if(parameterlength == 1):
+            print("PrimeNumber: ", RandomP(parameters[0]))
+        elif(parameterlength == 2):
+            gcdList = egcd(parameters[0], parameters[1])
+            print("x: ", gcdList[1], "y: ", gcdList[2])
+        elif(parameterlength == 3):
+            PhiN = (parameters[1] - 1) * (parameters[2] - 1)
+            n = parameters[1] * parameters[2]
+            print("d: ", modinv(parameters[0], PhiN), "n: ", n)
+        elif(parameterlength == 4):
+            if(parameters[0] == 'e'):
+                print("Encrypted message: ", RSAencrypt(parameters[1], parameters[2], parameters[3]))
+            elif(parameters[0] == 'd'):
+                MSGlist = RSAdecrypt(parameters[1], parameters[2], parameters[3])
+                sys.stdout.write("Decrypted message: ")
+                for i in MSGlist:
+                    sys.stdout.write(i)
+                print("")
+            else:
+                print("Invalid parameters")
+        else:
+            print("Invalid parameters")
+
+        print("Press 'Y' to attempt more tests, else push any key to quit")
+        Continue = input()
+        Continue = Continue.upper()
+        if(Continue != 'Y'):
             break
-
-    d = modinv(e, PhiN)
-    print("GCD:", egcd(e, PhiN))
-    print("q:", q, "p:", p)
-    print("n:", n, "PhiN:", PhiN)
-    print("e:", e, " d:", d)
-    print((e * d) % PhiN)
-    encryptedMSG = RSAencrypt(e,n, StrMessage)
-    MSGlist = RSAdecrypt(d, n, encryptedMSG)
-
-    for i in MSGlist:
-        sys.stdout.write(i)
-
-    print("")
 
     return
 
@@ -57,7 +70,6 @@ def modinv(a, m):
 #Python implementation of Fermat's Theorem
 def Fermat(Prime):
     a = random.randint(2, Prime - 1)
-    #if(modexp(a, Prime - 1, Prime)) == 1:
     if pow(a, Prime - 1, Prime) == 1:
         return True
     else:
