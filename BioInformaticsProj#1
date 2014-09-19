@@ -16,7 +16,7 @@ def main():
     for i in range(DNAlength):
         DNAsequence = DNAsequence + DNAbases[random.randint(0,3)]
     
-    #generate our complement strand
+    #generate our complement strand using our map
     for i in range(DNAlength):
         DNAcomplement = DNAcomplement + BaseComplements[DNAsequence[i]]
     
@@ -51,8 +51,12 @@ def main():
     #specify ouru complement gene sequence based on it's primer's position
     ComplementGeneSequence = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 200]
     
+    
     StrandList = []
     FailureChance = .00025
+    #we start out with 2 DNA strands, if the enzyme successfully copies past the gene sequence
+    #we will increment the number of strands we have to that we use the successful copy in
+    #the next cycle
     DNAStrands = 2
     DNAfragments = 0
     Successes = 2
@@ -61,6 +65,7 @@ def main():
     temp = 0
     #numpy.random.geometric returns a list, hence appending index 0 of 'StrandLength'
     #We must use a temp value to keep track of successes within our loop otherwise loop could be continuous
+    #since we don't want to increment the number of strands we have while we are iterating over them.
     for i in range(PCRCycles):
         DNAStrands = DNAStrands + temp
         temp = 0
@@ -82,6 +87,8 @@ def main():
         #raise our failure chance for the next cycle
         FailureChance = FailureChance + .00001
     
+    
+    #All used to format data and print to a file
     StrandList = sorted(StrandList)
     file = open('DNA.txt','w')
     file.write(' '.join(map(str, StrandList)))
@@ -98,13 +105,7 @@ def main():
     file.write("Successes (Successful copies throughout entire process) (length >= 200): ")
     file.write(str(Successes))
     print(' '.join(map(str, StrandList)))
-    #print(sorted(StrandList))
-    #print("GeneSequence:", DNAGeneSequence)
-    #print("ComplementGeneSequence:", ComplementGeneSequence)
-    #print("DNA:",DNAsequence)
-    #print("DNAcomplement(reversed):",DNAcomplement)
-    #print("Initial Primer: ", DNAprimer)
-    #print("Initial Complement Primer: ", ComplementDNAPrimer)
+
     return
 
 if __name__ == "__main__":
