@@ -22,12 +22,12 @@ def main():
     
     #Find our initial strands primer
     StartPrimer = random.randint(0, len(DNAsequence) - 200)
-    DNAprimer = DNAsequence[StartPrimer:StartPrimer + 10]
+    DNAprimer = DNAsequence[StartPrimer:StartPrimer + 20]
     #Checks to make sure the primer found is unique, if not, add a character to it and check again till a unique one is found
     incr = 1
     while True:
         if DNAsequence.count(DNAprimer) != 1:
-            DNAprimer = DNAsequence[StartPrimer:StartPrimer + 10 + incr]
+            DNAprimer = DNAsequence[StartPrimer:StartPrimer + 20 + incr]
             incr = incr + 1
         else:
             break
@@ -38,12 +38,12 @@ def main():
     #Find our complement strands primer
     DNAcomplement = DNAcomplement[::-1]#reverses string(done so primer ends up on correct end
     ComplementStartPrimer = DNAlength - StartPrimer - 200
-    ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer: ComplementStartPrimer + 10]
+    ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer: ComplementStartPrimer + 20]
     #Checks to make sure the primer found is unique, if not, add a character to it and check again till a unique one is found
     incr = 1
     while True:
         if DNAcomplement.count(ComplementDNAPrimer) != 1:
-            ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 10 + incr]
+            ComplementDNAPrimer = DNAcomplement[ComplementStartPrimer:ComplementStartPrimer + 20 + incr]
             incr = incr + 1
         else:
             break
