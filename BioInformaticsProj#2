@@ -1,0 +1,81 @@
+import sys
+
+Global = [[0 for j in range(5)] for i in range(5)]
+Local = [[0 for j in range(5)] for i in range(5)]
+
+Seq1 = "_AGTA" #top sequence
+Seq2 = "_AGCC" #side sequence
+MatchScore = 0
+LocalMax = [3]
+
+def main():
+    print("Global Alignment")
+    GlobalAlignment()
+    print()
+    print("Local Alignment")
+    LocalMax = LocalAlignment()
+    print("MaxScore is:", LocalMax[0], "and appears at:", LocalMax[1],":",LocalMax[2])
+    
+
+def LocalAlignment():
+    MaxScore = [0, 0, 0] 
+    for i in range(1,5):
+        for j in range(1,5):
+            if(Seq1[j] == Seq2[i]):
+                MatchScore = 1
+            else:
+                MatchScore = -1
+            Local[i][j] = max(0, max(MatchScore + Local[i - 1][j - 1] ,max(-2 + Local[i][j - 1], -2 + Local[i - 1][j])))
+            #keep track of where our max Local allignment score appears
+            if(Local[i][j] != 0 and Local[i][j] >= MaxScore[0]):
+                MaxScore[0] = Local[i][j]
+                MaxScore[1] = i
+                MaxScore[2] = j
+
+    #print our alignment score matrix
+    sys.stdout.write("  ")
+    for i in range(5):
+        sys.stdout.write(" " + Seq1[i])
+    print()
+                         
+    for i in range(5):
+        sys.stdout.write(" " + Seq2[i] + " ")
+        for j in range(5):
+            sys.stdout.write(str(Local[i][j]) + " ")
+
+        print()
+
+    return MaxScore
+
+def GlobalAlignment():
+    for i in range(5):
+        Global[i][0] = i * -2
+    for j in range(5):
+        Global[0][j] = j * -2
+
+    for i in range(1,5):
+        for j in range(1,5):
+            if(Seq1[j] == Seq2[i]):
+                MatchScore = 1
+            else:
+                MatchScore = -1
+            Global[i][j] = max(MatchScore + Global[i - 1][j - 1] ,max(-2 + Global[i][j - 1], -2 + Global[i - 1][j]))
+
+    sys.stdout.write("   ")
+    for i in range(5):
+        sys.stdout.write(" " + Seq1[i] + " ")
+    print()
+                         
+    for i in range(5):
+        sys.stdout.write(" " + Seq2[i] + " ")
+        for j in range(5):
+            if(Global[i][j] >= 0):
+                sys.stdout.write(" " + str(Global[i][j]))
+            else:
+                sys.stdout.write(str(Global[i][j]))
+            sys.stdout.write(" ")
+
+        print()
+
+if True:
+    main()
