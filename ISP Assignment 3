@@ -10,11 +10,14 @@
 				var Password = document.MyForm.password.value;
 				var Email = document.MyForm.email.value;
 				var Phone = document.MyForm.phone.value;
+				var Address = document.MyForm.address.value;
 				var Date = document.MyForm.date.value;
 				var Time = document.MyForm.time.value;
+				var Number = document.MyForm.numeric.value;
 				var UserName = /^[A-z]+\s{1}[A-z]+$/;
 				var PhoneNumber = /^[0-9]{3}[-]{1}[0-9]{3}[-]{1}[0-9]{4}$/;
 				var Pass = /^(?=.*?[A-z])(?=.*?[A-z])(?=.*?[0-9]).{9,}$/;
+				var Numeral = /^[0-9]{1,}$/;
 				if(!Name.match(UserName))
 					AlertMsg += ", Incorrect UserName Form";
 				if(!Password.match(Pass))
@@ -23,11 +26,15 @@
 					AlertMsg += ", Input an Email";
 				if(!Phone.match(PhoneNumber))
 					AlertMsg += ", Incorrect Phone Number Form";
+				if(!Address)
+					AlertMsg += ", Input an Address";
 				if(!Date)
 					AlertMsg += ", Input a Date";
 				if(!Time)
 					AlertMsg += ", Input a Time";
-					
+				if(!Number.match(Numeral))
+					AlertMsg += ", Incorrect Numeric Expression";
+				
 				if(AlertMsg.length > 14)
 					alert(AlertMsg);
 			}
