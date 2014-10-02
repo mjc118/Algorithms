@@ -1,0 +1,53 @@
+<!doctype html>
+	<html>
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+		<title>Assignment 3</title>
+		<script>
+			function Validate(){
+				var AlertMsg = "Errors include";
+				var Name = document.MyForm.name.value;
+				var Password = document.MyForm.password.value;
+				var Email = document.MyForm.email.value;
+				var Phone = document.MyForm.phone.value;
+				var Date = document.MyForm.date.value;
+				var Time = document.MyForm.time.value;
+				var UserName = /^[A-z]+\s{1}[A-z]+$/;
+				var PhoneNumber = /^[0-9]{3}[-]{1}[0-9]{3}[-]{1}[0-9]{4}$/;
+				var Pass = /^(?=.*?[A-z])(?=.*?[A-z])(?=.*?[0-9]).{9,}$/;
+				if(!Name.match(UserName))
+					AlertMsg += ", Incorrect UserName Form";
+				if(!Password.match(Pass))
+					AlertMsg += ", Incorrect Password Form";
+				if(!Email)
+					AlertMsg += ", Input an Email";
+				if(!Phone.match(PhoneNumber))
+					AlertMsg += ", Incorrect Phone Number Form";
+				if(!Date)
+					AlertMsg += ", Input a Date";
+				if(!Time)
+					AlertMsg += ", Input a Time";
+					
+				if(AlertMsg.length > 14)
+					alert(AlertMsg);
+			}
+		</script>
+	</head>
+	<body>
+		<span id="name" style="color:blue">Michael Crabtree</span>
+		<p id="date">October 2, 2014</p>
+		<h1 id="assignment" style="text-align:center">Assignment 3</h1>
+		<h2 id="class-title" style="text-align:center">Internet Systems Programming</h2>
+		<form id="MyForm" name="MyForm" onsubmit="return Validate();" method="post">
+			Name: <input id="name" type="text" name="name"><br>
+			Password: <input id="password" type="password" name="password"><br>
+			E-Mail Address: <input id="email" type="email" name="email"><br>
+			Phone: <input id="phone" type="text" name="phone"><br>
+			Address: <input id="address" type="text" name="address"><br>
+			Date: <input id="date" type="date" name="date"><br>
+			Time: <input id="time" type="time" name="time"><br>
+			Numeric Field:<input id="numeric" type="number" name="numeric"><br>
+			Validate: <input id="submit" type="submit" value="Submit">
+		</form>	
+	</body>
+	</html>
