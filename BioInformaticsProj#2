@@ -4,8 +4,9 @@ MatchScore = 0
 
 
 def main():
-    Seq1 = "_AAATTTAA" #top sequence
-    Seq2 = "_AAATTAA" #side sequence
+    Seq1 = "AAATTTAATT" #top sequence
+    Seq1 = "_" + Seq1
+    Seq2 = "_AAAAACCCCTT" #side sequence
     Global = [[0 for j in range(len(Seq1))] for i in range(len(Seq2))]
     
     print("Global Alignment")
@@ -35,8 +36,8 @@ def Alignment(LocalMax, Seq1, Seq2, Global):
             CurrentPos[1] = CurrentPos[1] - 1
         elif(NextPos[1] < 0 and NextPos[0] >= 0):
             AlignedTop += "_"
-            AlignedBot += Seq2[Current[0]]
-            CurrentPos[0] = Current[0] - 1
+            AlignedBot += Seq2[CurrentPos[0]]
+            CurrentPos[0] = CurrentPos[0] - 1
             CurrentPos[1] = 0
         else:
             if(NextPos[0] >= 0 and NextPos[1] >= 0):
