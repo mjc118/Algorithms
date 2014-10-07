@@ -3,25 +3,52 @@ import sys
 #gaps on bottom strand are delete, top strand gaps are insertions
 #make a dictionary of amino acids formed by 3 bases, step by 3's
 #make sure to not go out of bounds when grabbing three characters
+#del Global[:] - clears all elements 
+StrandNames = []
+GeneNames = ["NP", "VP35", "VP40", "GP", "2nd GP protein", "VP30", "VP24", "L"]
+#load our strand names used to access the files + output
+for i in range(40,119):
+    if(i < 100):
+        StrandNames.append("KM2330" + str(i))
+    else:
+        StrandNames.append("KM233" + str(i))
+#variables to keep track of our stats
+Insertions = 0
+Deletions = 0
+SynonMutate = 0
+NonsynonMutate = 0
+
+#used during alignment
 MatchScore = 0
+
+#Holds our 1976 gene sequences
 Zaire = []
 Sudan = []
+GeneStrand = [] #temp variable to hold our 8 genes per strand
+OutputFile = open('Output.txt', 'w')
+
 def main():
     ReadFromFile("Zaire1976",Zaire)
     ReadFromFile("Sudan1976",Sudan)
-    Seq1 = "CCCAAAGACAAGGG" #top sequence
-    Seq2 = "CCCAAGACAAAGGG" #side sequence
-    print(Seq1)
-    print(Seq2)
-    Seq1 = "_" + Seq1
-    Seq2 = "_" + Seq2
-    Global = [[0 for j in range(len(Seq1))] for i in range(len(Seq2))]
-    
-    print("Global Alignment")
-    GlobalAlignment(Global, Seq1, Seq2)
-    print()
-    GlobalMax = [Global[len(Seq2) - 1][len(Seq1) - 1], len(Seq2) - 1, len(Seq1) - 1]
-    Alignment(GlobalMax, Seq1, Seq2, Global)
+    #get rid of 3rd GP gene that we are not using in our alignment since Sudan ebola does not have it
+    del Zaire[5]
+    for i in range(len(StrandNames)):
+        ReadFromFile(StrandNames[i], GeneStrand)
+        del GeneStrand[5] #same reason as Zaire del
+        OutputFile.write("Zaire\t" + StrandNames[i] + "\tInsertions\tDeletions\tSynonymous Mutations\tNonsynonymous Mutations\n")
+        for j in range(8):
+            Insertions = Deletions = SynonMutate = NonsynonMutate = 0
+            Seq1 = "_" + Zaire[j]
+            Seq2 = "_" + GeneStrand[j]
+            #create our 2d array for alignment scoring
+            Global = [[0 for j in range(len(Seq1))] for i in range(len(Seq2))]
+            #score the array based on our two sequences
+            GlobalAlignment(Global, Seq1, Seq2)
+            GlobalMax = [Global[len(Seq2) - 1][len(Seq1) - 1], len(Seq2) - 1, len(Seq1) - 1]
+            #grab our new alignment strings based on our scoring and traversing our array backwards
+            TopAlign, BotAlign = Alignment(GlobalMax, Seq1, Seq2, Global)
+            Insertions = TopAlign.count('_')
+            Deletions = BotAlign.count('_')
     
 def Alignment(LocalMax, Seq1, Seq2, Global):
     AlignedTop = ""
@@ -82,8 +109,7 @@ def Alignment(LocalMax, Seq1, Seq2, Global):
 
     AlignedTop = AlignedTop[::-1]
     AlignedBot = AlignedBot[::-1]
-    #print(AlignedTop)
-    #print(AlignedBot)
+
     return AlignedTop, AlignedBot
 
 def GlobalAlignment(Global, Seq1, Seq2):
@@ -102,22 +128,6 @@ def GlobalAlignment(Global, Seq1, Seq2):
                 MatchScore = -1
             Global[i][j] = max(MatchScore + Global[i - 1][j - 1] ,max(-2 + Global[i][j - 1], -2 + Global[i - 1][j]))
 
-    sys.stdout.write("   ")
-    for i in range(Column):
-        sys.stdout.write(" " + Seq1[i] + " ")
-    print()
-                         
-    for i in range(Row):
-        sys.stdout.write(" " + Seq2[i] + " ")
-        for j in range(Column):
-            if(Global[i][j] >= 0):
-                sys.stdout.write(" " + str(Global[i][j]))
-            else:
-                sys.stdout.write(str(Global[i][j]))
-            sys.stdout.write(" ")
-
-        print()
-
 def ReadFromFile(FileName, CDSarray):
     index = -1
     with open("CDS/" + FileName + ".txt", "rtU") as file:
@@ -126,8 +136,33 @@ def ReadFromFile(FileName, CDSarray):
                 index += 1
                 CDSarray.append("")
             else:
-                line = line.rstrip()
-                CDSarray[index] += line
+                CDSarray[index] += line.rstrip()
+
+#dictionary used to check what type of mutation we have
+RNA_codon_table = {
+# Second Base
+# U C A G
+# U
+    'UUU': 'Phe', 'UCU': 'Ser', 'UAU': 'Tyr', 'UGU': 'Cys', # UxU
+    'UUC': 'Phe', 'UCC': 'Ser', 'UAC': 'Tyr', 'UGC': 'Cys', # UxC
+    'UUA': 'Leu', 'UCA': 'Ser', 'UAA': '---', 'UGA': '---', # UxA
+    'UUG': 'Leu', 'UCG': 'Ser', 'UAG': '---', 'UGG': 'Trp', # UxG
+# C
+    'CUU': 'Leu', 'CCU': 'Pro', 'CAU': 'His', 'CGU': 'Arg', # CxU
+    'CUC': 'Leu', 'CCC': 'Pro', 'CAC': 'His', 'CGC': 'Arg', # CxC
+    'CUA': 'Leu', 'CCA': 'Pro', 'CAA': 'Gln', 'CGA': 'Arg', # CxA
+    'CUG': 'Leu', 'CCG': 'Pro', 'CAG': 'Gln', 'CGG': 'Arg', # CxG
+# A
+    'AUU': 'Ile', 'ACU': 'Thr', 'AAU': 'Asn', 'AGU': 'Ser', # AxU
+    'AUC': 'Ile', 'ACC': 'Thr', 'AAC': 'Asn', 'AGC': 'Ser', # AxC
+    'AUA': 'Ile', 'ACA': 'Thr', 'AAA': 'Lys', 'AGA': 'Arg', # AxA
+    'AUG': 'Met', 'ACG': 'Thr', 'AAG': 'Lys', 'AGG': 'Arg', # AxG
+# G
+    'GUU': 'Val', 'GCU': 'Ala', 'GAU': 'Asp', 'GGU': 'Gly', # GxU
+    'GUC': 'Val', 'GCC': 'Ala', 'GAC': 'Asp', 'GGC': 'Gly', # GxC
+    'GUA': 'Val', 'GCA': 'Ala', 'GAA': 'Glu', 'GGA': 'Gly', # GxA
+    'GUG': 'Val', 'GCG': 'Ala', 'GAG': 'Glu', 'GGG': 'Gly'  # GxG
+}
 
 if True:
     main()
