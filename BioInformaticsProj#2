@@ -32,32 +32,71 @@ def main():
         for m in range(8):
             print(m)
             Insertions = Deletions = SynonMutate = NonsynonMutate = 0
-            Seq1 = "_" + Zaire[m]
-            Seq2 = "_" + GeneStrand[m]
-            #create our 2d array for alignment scoring
-            #need to make a function that splits our array over and over again to score it
-            #maybe split it into sections of 200 since python can not handle making a 2d array of
-            #4 million indices
-            Global = [[0 for Col in range(len(Seq1))] for Row in range(len(Seq2))]
-            #score the array based on our two sequences
-            GlobalAlignment(Global, Seq1, Seq2)
-            GlobalMax = [Global[len(Seq2) - 1][len(Seq1) - 1], len(Seq2) - 1, len(Seq1) - 1]
-            #grab our new alignment strings based on our scoring and traversing our array backwards
-            TopAlign, BotAlign = Alignment(GlobalMax, Seq1, Seq2, Global)
+            print(len(Zaire[m])," ", len(GeneStrand[m]))
+            TopAlign, BotAlign = SplitAlign(Zaire[m], GeneStrand[m])
+            print(TopAlign, "\n\n", BotAlign)
             Insertions = TopAlign.count('_')
             Deletions = BotAlign.count('_')
-            SynonMutate, NonsysnonMutate = Mutations(TopAlign, BotAlign)
+            SynonMutate, NonsynonMutate = Mutations(TopAlign, BotAlign)
             OutputFile.write("\t" + GeneNames[m] + "\t" + str(Insertions) + "\t" + str(Deletions) + "\t" + str(SynonMutate) + "\t" + str(NonsynonMutate) + "\n")
-            del Global[:]
     
     OutputFile.close()
+
+
+def SplitAlign(TopSeq, BotSeq):
+    TopLen = len(TopSeq)
+    BotLen = len(BotSeq)
+    #the variables we will return
+    TopAligned = ""
+    BotAligned = ""
+    Index = 0
+    TopEnd = BotEnd = False
+    while(True):
+        TopPortion = "_"
+        BotPortion = "_"
+        if(TopLen - Index >= 200):
+            TopPortion += TopSeq[Index:Index + 200]
+        elif(TopLen - Index > 0):
+            TopPortion += TopSeq[Index:TopLen]
+            TopEnd = True
+        else:
+            TopEnd = True
+
+        if(BotLen - Index >= 200):
+            BotPortion += BotSeq[Index:Index + 200]
+        elif(BotLen - Index > 0):
+            BotPortion += BotSeq[Index:BotLen]
+            BotEnd = True
+        else:
+            BotEnd = True
+
+        Global = [[0 for Col in range(len(TopPortion))] for Row in range(len(BotPortion))]
+        #score the array based on our two sequences
+        GlobalAlignment(Global, TopPortion, BotPortion)
+        GlobalMax = [Global[len(BotPortion) - 1][len(TopPortion) - 1], len(BotPortion) - 1, len(TopPortion) - 1]
+        #grab our new alignment strings based on our scoring and traversing our array backwards
+        TempTopAlign, TempBotAlign = Alignment(GlobalMax, TopPortion, BotPortion, Global)
+
+        #start constructing our end aligned string
+        TopAligned += TempTopAlign
+        BotAligned += TempBotAlign
+
+        #free our memory, incr index
+        del Global[:]
+        Index += 200
+        if(TopEnd and BotEnd):
+            break
+
+    return TopAligned, BotAligned
+
+
 
 #calculate our what type of mutations we have
 def Mutations(OldEbola, NewEbola):
     SynonMutate = NonsynonMutate = 0
     OldFrame = NewFrame = ""
     for i in range(0,len(OldEbola),3):
-        while(i <= len(OldEbola) - 3):
+        if(i <= len(OldEbola) - 3):
             OldFrame = OldEbola[i:i + 3]
             NewFrame = NewEbola[i:i + 3]
             if(OldFrame.count('_') == 0 and NewFrame.count('_') == 0):
