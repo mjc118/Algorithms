@@ -32,14 +32,14 @@ def main():
     ReadFromFile("Sudan1976",Sudan)
     #get rid of 3rd GP gene that we are not using in our alignment since Sudan ebola does not have it
     del Zaire[5]
-    for i in range(len(StrandNames)):
-        ReadFromFile(StrandNames[i], GeneStrand)
+    for n in range(len(StrandNames)):
+        ReadFromFile(StrandNames[n], GeneStrand)
         del GeneStrand[5] #same reason as Zaire del
-        OutputFile.write("Zaire\t" + StrandNames[i] + "\tInsertions\tDeletions\tSynonymous Mutations\tNonsynonymous Mutations\n")
-        for j in range(8):
+        OutputFile.write("Zaire\t" + StrandNames[n] + "\tInsertions\tDeletions\tSynonymous Mutations\tNonsynonymous Mutations\n")
+        for m in range(8):
             Insertions = Deletions = SynonMutate = NonsynonMutate = 0
-            Seq1 = "_" + Zaire[j]
-            Seq2 = "_" + GeneStrand[j]
+            Seq1 = "_" + Zaire[m]
+            Seq2 = "_" + GeneStrand[m]
             #create our 2d array for alignment scoring
             Global = [[0 for j in range(len(Seq1))] for i in range(len(Seq2))]
             #score the array based on our two sequences
@@ -49,7 +49,25 @@ def main():
             TopAlign, BotAlign = Alignment(GlobalMax, Seq1, Seq2, Global)
             Insertions = TopAlign.count('_')
             Deletions = BotAlign.count('_')
+            Mutations(TopAlign, BotAlign)
+            OutputFile.write("\t" + GeneNames[m] + "\t" + str(Insertions) + "\t" + str(Deletions) + "\t" + str(SynonMutate) + "\t" + str(NonsynonMutate) + "\n")
+            del Global[:]
     
+    OutputFile.close()
+#calculate our what type of mutations we have
+def Mutations(OldEbola, NewEbola):
+    OldFrame = ""
+    NewFrame = ""
+    for i in range(0,len(OldEbola),3):
+        while(i <= len(OldEbola) - 3):
+            OldFrame = OldEbola[i:i + 3]
+            NewFrame = NewEbola[i:i + 3]
+            if(OldFrame.count('_') == 0 and NewFrame.count('_') == 0):
+                if(RNA_codon_table[OldFrame] == RNA_codon_table[NewFrame]):
+                    SynonMutate += 1
+                else:
+                    NonsynonMutate += 1
+  
 def Alignment(LocalMax, Seq1, Seq2, Global):
     AlignedTop = ""
     AlignedBot = ""
@@ -143,25 +161,25 @@ RNA_codon_table = {
 # Second Base
 # U C A G
 # U
-    'UUU': 'Phe', 'UCU': 'Ser', 'UAU': 'Tyr', 'UGU': 'Cys', # UxU
-    'UUC': 'Phe', 'UCC': 'Ser', 'UAC': 'Tyr', 'UGC': 'Cys', # UxC
-    'UUA': 'Leu', 'UCA': 'Ser', 'UAA': '---', 'UGA': '---', # UxA
-    'UUG': 'Leu', 'UCG': 'Ser', 'UAG': '---', 'UGG': 'Trp', # UxG
+    'TTT': 'Phe', 'TCT': 'Ser', 'TAT': 'Tyr', 'TGT': 'Cys', # UxU
+    'TTC': 'Phe', 'TCC': 'Ser', 'TAC': 'Tyr', 'TGC': 'Cys', # UxC
+    'TTA': 'Leu', 'TCA': 'Ser', 'TAA': '---', 'TGA': '---', # UxA
+    'TTG': 'Leu', 'TCG': 'Ser', 'TAG': '---', 'TGG': 'Trp', # UxG
 # C
-    'CUU': 'Leu', 'CCU': 'Pro', 'CAU': 'His', 'CGU': 'Arg', # CxU
-    'CUC': 'Leu', 'CCC': 'Pro', 'CAC': 'His', 'CGC': 'Arg', # CxC
-    'CUA': 'Leu', 'CCA': 'Pro', 'CAA': 'Gln', 'CGA': 'Arg', # CxA
-    'CUG': 'Leu', 'CCG': 'Pro', 'CAG': 'Gln', 'CGG': 'Arg', # CxG
+    'CTT': 'Leu', 'CCT': 'Pro', 'CAT': 'His', 'CGT': 'Arg', # CxU
+    'CTC': 'Leu', 'CCC': 'Pro', 'CAC': 'His', 'CGC': 'Arg', # CxC
+    'CTA': 'Leu', 'CCA': 'Pro', 'CAA': 'Gln', 'CGA': 'Arg', # CxA
+    'CTG': 'Leu', 'CCG': 'Pro', 'CAG': 'Gln', 'CGG': 'Arg', # CxG
 # A
-    'AUU': 'Ile', 'ACU': 'Thr', 'AAU': 'Asn', 'AGU': 'Ser', # AxU
-    'AUC': 'Ile', 'ACC': 'Thr', 'AAC': 'Asn', 'AGC': 'Ser', # AxC
-    'AUA': 'Ile', 'ACA': 'Thr', 'AAA': 'Lys', 'AGA': 'Arg', # AxA
-    'AUG': 'Met', 'ACG': 'Thr', 'AAG': 'Lys', 'AGG': 'Arg', # AxG
+    'ATT': 'Ile', 'ACT': 'Thr', 'AAT': 'Asn', 'AGT': 'Ser', # AxU
+    'ATC': 'Ile', 'ACC': 'Thr', 'AAC': 'Asn', 'AGC': 'Ser', # AxC
+    'ATA': 'Ile', 'ACA': 'Thr', 'AAA': 'Lys', 'AGA': 'Arg', # AxA
+    'ATG': 'Met', 'ACG': 'Thr', 'AAG': 'Lys', 'AGG': 'Arg', # AxG
 # G
-    'GUU': 'Val', 'GCU': 'Ala', 'GAU': 'Asp', 'GGU': 'Gly', # GxU
-    'GUC': 'Val', 'GCC': 'Ala', 'GAC': 'Asp', 'GGC': 'Gly', # GxC
-    'GUA': 'Val', 'GCA': 'Ala', 'GAA': 'Glu', 'GGA': 'Gly', # GxA
-    'GUG': 'Val', 'GCG': 'Ala', 'GAG': 'Glu', 'GGG': 'Gly'  # GxG
+    'GTT': 'Val', 'GCT': 'Ala', 'GAT': 'Asp', 'GGT': 'Gly', # GxU
+    'GTC': 'Val', 'GCC': 'Ala', 'GAC': 'Asp', 'GGC': 'Gly', # GxC
+    'GTA': 'Val', 'GCA': 'Ala', 'GAA': 'Glu', 'GGA': 'Gly', # GxA
+    'GTG': 'Val', 'GCG': 'Ala', 'GAG': 'Glu', 'GGG': 'Gly'  # GxG
 }
 
 if True:
