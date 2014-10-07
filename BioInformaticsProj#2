@@ -13,13 +13,6 @@ for i in range(40,119):
     else:
         StrandNames.append("KM233" + str(i))
 #variables to keep track of our stats
-Insertions = 0
-Deletions = 0
-SynonMutate = 0
-NonsynonMutate = 0
-
-#used during alignment
-MatchScore = 0
 
 #Holds our 1976 gene sequences
 Zaire = []
@@ -37,11 +30,15 @@ def main():
         del GeneStrand[5] #same reason as Zaire del
         OutputFile.write("Zaire\t" + StrandNames[n] + "\tInsertions\tDeletions\tSynonymous Mutations\tNonsynonymous Mutations\n")
         for m in range(8):
+            print(m)
             Insertions = Deletions = SynonMutate = NonsynonMutate = 0
             Seq1 = "_" + Zaire[m]
             Seq2 = "_" + GeneStrand[m]
             #create our 2d array for alignment scoring
-            Global = [[0 for j in range(len(Seq1))] for i in range(len(Seq2))]
+            #need to make a function that splits our array over and over again to score it
+            #maybe split it into sections of 200 since python can not handle making a 2d array of
+            #4 million indices
+            Global = [[0 for Col in range(len(Seq1))] for Row in range(len(Seq2))]
             #score the array based on our two sequences
             GlobalAlignment(Global, Seq1, Seq2)
             GlobalMax = [Global[len(Seq2) - 1][len(Seq1) - 1], len(Seq2) - 1, len(Seq1) - 1]
@@ -49,15 +46,16 @@ def main():
             TopAlign, BotAlign = Alignment(GlobalMax, Seq1, Seq2, Global)
             Insertions = TopAlign.count('_')
             Deletions = BotAlign.count('_')
-            Mutations(TopAlign, BotAlign)
+            SynonMutate, NonsysnonMutate = Mutations(TopAlign, BotAlign)
             OutputFile.write("\t" + GeneNames[m] + "\t" + str(Insertions) + "\t" + str(Deletions) + "\t" + str(SynonMutate) + "\t" + str(NonsynonMutate) + "\n")
             del Global[:]
     
     OutputFile.close()
+
 #calculate our what type of mutations we have
 def Mutations(OldEbola, NewEbola):
-    OldFrame = ""
-    NewFrame = ""
+    SynonMutate = NonsynonMutate = 0
+    OldFrame = NewFrame = ""
     for i in range(0,len(OldEbola),3):
         while(i <= len(OldEbola) - 3):
             OldFrame = OldEbola[i:i + 3]
@@ -67,6 +65,8 @@ def Mutations(OldEbola, NewEbola):
                     SynonMutate += 1
                 else:
                     NonsynonMutate += 1
+
+    return SynonMutate, NonsynonMutate
   
 def Alignment(LocalMax, Seq1, Seq2, Global):
     AlignedTop = ""
