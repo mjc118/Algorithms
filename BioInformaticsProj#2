@@ -63,16 +63,16 @@ def SplitAlign(TopSeq, BotSeq):
     while(True):
         TopPortion = "_"
         BotPortion = "_"
-        if(TopLen - Index >= 200):
-            TopPortion += TopSeq[Index:Index + 200]
+        if(TopLen - Index >= 2230):
+            TopPortion += TopSeq[Index:Index + 2230]
         elif(TopLen - Index > 0):
             TopPortion += TopSeq[Index:TopLen]
             TopEnd = True
         else:
             TopEnd = True
 
-        if(BotLen - Index >= 200):
-            BotPortion += BotSeq[Index:Index + 200]
+        if(BotLen - Index >= 2230):
+            BotPortion += BotSeq[Index:Index + 2230]
         elif(BotLen - Index > 0):
             BotPortion += BotSeq[Index:BotLen]
             BotEnd = True
@@ -92,7 +92,7 @@ def SplitAlign(TopSeq, BotSeq):
 
         #free our memory, incr index
         del Global[:]
-        Index += 200
+        Index += 2230
         if(TopEnd and BotEnd):
             break
 
