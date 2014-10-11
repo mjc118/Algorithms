@@ -9,87 +9,94 @@ using namespace std;
 //(row * size) + col
 int main(){
 	vector<int> list, temp;
+	vector<int>ScoreGrid;
 	map<int, vector<int>>MyMap;
 	bool left, up, Possible = false;
-	int Size, SizeSquared;
+	int Runs, Size, SizeSquared;
 	double Probability;
 
 	/*MyMap.insert(pair<int, vector<int>>(111, list));
 	MyMap[111].push_back(111);
 	temp = MyMap.find(111)->second;
 	MyMap.erase(111);*/
+	cin >> Runs;
 	cin >> Size;
 	cin >> Probability;
 
 	SizeSquared = (Size * Size);
 
+	for (int i = 0; i < (SizeSquared); ++i)
+		ScoreGrid.push_back(0);
+
 	int** Maze = new int*[Size];
 	for (int i = 0; i < Size; ++i)
 		Maze[i] = new int[Size];
 
-	vector<int>ScoreGrid;
-	
-	for (int i = 0; i < (SizeSquared); ++i)
-		ScoreGrid.push_back(0);
+	for (int r = 0; r < Runs; ++r){
+		Possible = false;
+		for (int i = 0; i < (SizeSquared); ++i)
+			ScoreGrid[i] = 0;
 
-	for (int i = 0; i < Size; ++i){
-		for (int j = 0; j < Size; ++j){
-			if (((double)rand() / (RAND_MAX)) <= Probability)
-				Maze[i][j] = 1;//open
-			else
-				Maze[i][j] = 0;//closed
-		}
-	}
-	for (int i = 0; i < Size; ++i){
-		for (int j = 0; j < Size; ++j){
-			cout << Maze[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	for (int i = 0; i < Size; ++i){
-		for (int j = 0; j < Size; ++j){
-			left = up = false;
-			if ((j - 1) >= 0){
-				if (Maze[i][j - 1] == Maze[i][j]){
-					MyMap.find(ScoreGrid[(i * Size) + (j - 1) ])->second.push_back((i * Size) + j );
-					ScoreGrid[(i * Size) + j] = ScoreGrid[(i * Size) + (j - 1)];
-					left = true;
-				}
+		for (int i = 0; i < Size; ++i){
+			for (int j = 0; j < Size; ++j){
+				if (((double)rand() / (float)(RAND_MAX)) <= Probability)
+					Maze[i][j] = 1;//open
+				else
+					Maze[i][j] = 0;//closed
 			}
-			if ((i - 1) >= 0){
-				if (Maze[i - 1][j] == Maze[i][j]){
-					if (left){
-						if (ScoreGrid[((i - 1) * Size) + j] != ScoreGrid[(i * Size) + j]){
-							temp = MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second;
-							MyMap.erase(ScoreGrid[((i - 1) * Size) + j]);
-							for (int it = 0 ; it < temp.size(); ++it){
-								MyMap.find(ScoreGrid[(i * Size) + j])->second.push_back(temp[it]);
-								ScoreGrid[temp[it]] = ScoreGrid[(i * Size) + j];
+		}
+		for (int i = 0; i < Size; ++i){
+			for (int j = 0; j < Size; ++j){
+				cout << Maze[i][j] << " ";
+			}
+			cout << endl;
+		}
+
+		for (int i = 0; i < Size; ++i){
+			for (int j = 0; j < Size; ++j){
+				left = up = false;
+				if ((j - 1) >= 0){
+					if (Maze[i][j - 1] == Maze[i][j]){
+						MyMap.find(ScoreGrid[(i * Size) + (j - 1)])->second.push_back((i * Size) + j);
+						ScoreGrid[(i * Size) + j] = ScoreGrid[(i * Size) + (j - 1)];
+						left = true;
+					}
+				}
+				if ((i - 1) >= 0){
+					if (Maze[i - 1][j] == Maze[i][j]){
+						if (left){
+							if (ScoreGrid[((i - 1) * Size) + j] != ScoreGrid[(i * Size) + j]){
+								temp = MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second;
+								MyMap.erase(ScoreGrid[((i - 1) * Size) + j]);
+								for (int it = 0; it < temp.size(); ++it){
+									MyMap.find(ScoreGrid[(i * Size) + j])->second.push_back(temp[it]);
+									ScoreGrid[temp[it]] = ScoreGrid[(i * Size) + j];
+								}
 							}
 						}
+						else{
+							MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second.push_back((i * Size) + j);
+							ScoreGrid[(i * Size) + j] = ScoreGrid[((i - 1) * Size) + j];
+						}
+						up = true;
 					}
-					else{
-						MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second.push_back((i * Size) + j);
-						ScoreGrid[(i * Size) + j] = ScoreGrid[((i - 1) * Size) + j];
-					}
-					up = true;
+				}
+				if (!up && !left){
+					MyMap.insert(pair<int, vector<int>>((i * Size) + j, list));
+					MyMap[(i * Size) + j].push_back((i * Size) + j);
+					ScoreGrid[((i * Size) + j)] = ((i * Size) + j);
 				}
 			}
-			if (!up && !left){
-				MyMap.insert(pair<int, vector<int>>((i * Size) + j, list));
-				MyMap[(i * Size) + j].push_back((i * Size) + j);
-				ScoreGrid[((i * Size) + j)] = ((i * Size) + j);
-			}
 		}
-	}
 
-	for (int i = (SizeSquared)-Size; i < (SizeSquared); ++i){
-		if (ScoreGrid[i] < Size)
-			Possible = true;
+		for (int col = 0; col < Size; ++col){
+			if (Maze[Size - 1][col] == 1)
+				if (ScoreGrid[((Size - 1) * Size) + col] < Size)
+					Possible = true;
+		}
+		cout << "Possible: " << Possible << "Clusters: " << MyMap.size() << endl;
+		MyMap.erase(MyMap.begin(), MyMap.end());
 	}
-	cout << "Possible: " << Possible;
-	cout << "Clusters: " << MyMap.size();
 
 	ScoreGrid.erase(ScoreGrid.begin(),ScoreGrid.end());
 	delete [] Maze;
