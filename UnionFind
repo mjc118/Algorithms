@@ -6,33 +6,28 @@
 
 using namespace std;
 
-//(row+1)^2   + column
+//(row * size) + col
 int main(){
 	vector<int> list, temp;
 	map<int, vector<int>>MyMap;
-	bool left, up;
-	MyMap.insert(pair<int,vector<int>>(1, list));
-	MyMap[1].push_back(3333333);
-	MyMap.insert(pair<int, vector<int>>(2, list));
-	if (MyMap.find(3) == MyMap.end())
-		cout << "not found";
-	else
-		cout << "found";
-
-	MyMap.find(1)->second.push_back(4444);
-	int Size;
+	bool left, up, Possible = false;
+	int Size, SizeSquared;
 	double Probability;
-	//((double)rand() / (RAND_MAX))
 
 	cin >> Size;
 	cin >> Probability;
+
+	SizeSquared = (Size * Size);
 
 	int** Maze = new int*[Size];
 	for (int i = 0; i < Size; ++i)
 		Maze[i] = new int[Size];
 
-	int* ScoreGrid = new int[(Size * Size)];
+	vector<int>ScoreGrid;
 	
+	for (int i = 0; i < (SizeSquared); ++i)
+		ScoreGrid.push_back(0);
+
 	for (int i = 0; i < Size; ++i){
 		for (int j = 0; j < Size; ++j){
 			if (((double)rand() / (RAND_MAX)) <= Probability)
@@ -76,10 +71,22 @@ int main(){
 					up = true;
 				}
 			}
+			if (!up && !left){
+				MyMap.insert(pair<int, vector<int>>((i * Size) + j, list));
+				MyMap[(i * Size) + j].push_back((i * Size) + j);
+				ScoreGrid[((i * Size) + j)] = ((i * Size) + j);
+			}
 		}
 	}
 
-	delete [] ScoreGrid;
+	for (int i = (SizeSquared)-Size; i < (SizeSquared); ++i){
+		if (ScoreGrid[i] < Size)
+			Possible = true;
+	}
+	cout << "Possible: " << Possible;
+	cout << "Clusters: " << MyMap.size();
+
+	ScoreGrid.erase(ScoreGrid.begin(),ScoreGrid.end());
 	delete [] Maze;
 	return 0;
 }
