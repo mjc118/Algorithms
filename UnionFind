@@ -3,12 +3,13 @@
 #include <string>
 #include <map>
 #include <vector>
+#include <algorithm>
 
 using namespace std;
 
 //(row * size) + col
 int main(){
-	vector<int> list, temp;
+	vector<int> list, BotRow, TopRow, temp;
 	vector<int>ScoreGrid;
 	map<int, vector<int>>MyMap;
 	bool left, up, Possible = false;
@@ -89,16 +90,38 @@ int main(){
 			}
 		}
 
-		for (int col = 0; col < Size; ++col){
+		for (int col = 0; col < Size; ++col){//grab all nodes the bottom row is pointing to
 			if (Maze[Size - 1][col] == 1)
-				if (ScoreGrid[((Size - 1) * Size) + col] < Size)
-					Possible = true;
+				BotRow.push_back(ScoreGrid[((Size - 1) * Size) + col]);			
 		}
-		cout << "Possible: " << Possible << "Clusters: " << MyMap.size() << endl;
+		sort(BotRow.begin(), BotRow.end());
+		BotRow.erase(unique(BotRow.begin(), BotRow.end()), BotRow.end());//erases all duplicate values
+
+		for (int col = 0; col < Size; ++col){//grab all nodes the top row is pointing to
+			if (Maze[0][col] == 1)
+				TopRow.push_back(ScoreGrid[col]);
+		}
+		sort(TopRow.begin(), TopRow.end());
+		TopRow.erase(unique(TopRow.begin(), TopRow.end()), TopRow.end());//erases all duplicate values
+
+		//check to see if any of them are equal, meaning there is a path from the top to the bottom
+		for (int i = 0; i < TopRow.size(); ++i){
+			for (int j = 0; j < BotRow.size(); ++j){
+				if (TopRow[i] == BotRow[j]){
+					Possible = true;
+					i = TopRow.size();
+					break;
+				}
+			}
+		}
+
+		cout << "Possible: " << Possible << " Clusters: " << MyMap.size() << endl << endl;
 		MyMap.erase(MyMap.begin(), MyMap.end());
+		BotRow.erase(BotRow.begin(), BotRow.end());
+		TopRow.erase(TopRow.begin(), TopRow.end());
 	}
 
-	ScoreGrid.erase(ScoreGrid.begin(),ScoreGrid.end());
-	delete [] Maze;
+	ScoreGrid.erase(ScoreGrid.begin(), ScoreGrid.end());
+	delete[] Maze;
 	return 0;
 }
