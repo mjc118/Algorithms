@@ -1,0 +1,28 @@
+#include <iostream>
+#include <random>
+#include <string>
+
+using namespace std;
+
+int main(){
+	int Size;
+	double Probability;
+	//((double)rand() / (RAND_MAX))
+	
+	cin >> Size;
+
+	int** Maze = new int*[Size];
+	for (int i = 0; i < Size; ++i)
+		Maze[i] = new int[Size];
+
+	for (int i = 0; i < Size; ++i)
+		for (int j = 0; j < Size; ++j)
+			if (((double)rand() / (RAND_MAX)) <= Probability)
+				Maze[i][j] == 1;//open
+			else
+				Maze[i][j] = 0;//closed
+
+	
+
+	return 0;
+}
