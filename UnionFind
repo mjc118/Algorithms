@@ -14,6 +14,10 @@ int main(){
 	int Size, SizeSquared;
 	double Probability;
 
+	/*MyMap.insert(pair<int, vector<int>>(111, list));
+	MyMap[111].push_back(111);
+	temp = MyMap.find(111)->second;
+	MyMap.erase(111);*/
 	cin >> Size;
 	cin >> Probability;
 
@@ -58,10 +62,11 @@ int main(){
 					if (left){
 						if (ScoreGrid[((i - 1) * Size) + j] != ScoreGrid[(i * Size) + j]){
 							temp = MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second;
+							MyMap.erase(ScoreGrid[((i - 1) * Size) + j]);
 							for (int it = 0 ; it < temp.size(); ++it){
 								MyMap.find(ScoreGrid[(i * Size) + j])->second.push_back(temp[it]);
+								ScoreGrid[temp[it]] = ScoreGrid[(i * Size) + j];
 							}
-							MyMap.erase(ScoreGrid[((i - 1) * Size) + j]);
 						}
 					}
 					else{
