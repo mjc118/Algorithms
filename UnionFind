@@ -1,28 +1,85 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <map>
+#include <vector>
 
 using namespace std;
 
+//(row+1)^2   + column
 int main(){
+	vector<int> list, temp;
+	map<int, vector<int>>MyMap;
+	bool left, up;
+	MyMap.insert(pair<int,vector<int>>(1, list));
+	MyMap[1].push_back(3333333);
+	MyMap.insert(pair<int, vector<int>>(2, list));
+	if (MyMap.find(3) == MyMap.end())
+		cout << "not found";
+	else
+		cout << "found";
+
+	MyMap.find(1)->second.push_back(4444);
 	int Size;
 	double Probability;
 	//((double)rand() / (RAND_MAX))
-	
+
 	cin >> Size;
+	cin >> Probability;
 
 	int** Maze = new int*[Size];
 	for (int i = 0; i < Size; ++i)
 		Maze[i] = new int[Size];
 
-	for (int i = 0; i < Size; ++i)
-		for (int j = 0; j < Size; ++j)
+	int* ScoreGrid = new int[(Size * Size)];
+	
+	for (int i = 0; i < Size; ++i){
+		for (int j = 0; j < Size; ++j){
 			if (((double)rand() / (RAND_MAX)) <= Probability)
-				Maze[i][j] == 1;//open
+				Maze[i][j] = 1;//open
 			else
 				Maze[i][j] = 0;//closed
+		}
+	}
+	for (int i = 0; i < Size; ++i){
+		for (int j = 0; j < Size; ++j){
+			cout << Maze[i][j] << " ";
+		}
+		cout << endl;
+	}
 
-	
+	for (int i = 0; i < Size; ++i){
+		for (int j = 0; j < Size; ++j){
+			left = up = false;
+			if ((j - 1) >= 0){
+				if (Maze[i][j - 1] == Maze[i][j]){
+					MyMap.find(ScoreGrid[(i * Size) + (j - 1) ])->second.push_back((i * Size) + j );
+					ScoreGrid[(i * Size) + j] = ScoreGrid[(i * Size) + (j - 1)];
+					left = true;
+				}
+			}
+			if ((i - 1) >= 0){
+				if (Maze[i - 1][j] == Maze[i][j]){
+					if (left){
+						if (ScoreGrid[((i - 1) * Size) + j] != ScoreGrid[(i * Size) + j]){
+							temp = MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second;
+							for (int it = 0 ; it < temp.size(); ++it){
+								MyMap.find(ScoreGrid[(i * Size) + j])->second.push_back(temp[it]);
+							}
+							MyMap.erase(ScoreGrid[((i - 1) * Size) + j]);
+						}
+					}
+					else{
+						MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second.push_back((i * Size) + j);
+						ScoreGrid[(i * Size) + j] = ScoreGrid[((i - 1) * Size) + j];
+					}
+					up = true;
+				}
+			}
+		}
+	}
 
+	delete [] ScoreGrid;
+	delete [] Maze;
 	return 0;
 }
