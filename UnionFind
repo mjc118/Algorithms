@@ -32,6 +32,7 @@ void FileGrid(char* argv[]){
 	string line;
 	ifstream inputfile(argv[1]);
 	
+	//pull all our integers from the file and throw them into a vector
 	while (getline(inputfile, line)){
 		stringstream ss(line);
 		while (ss >> num){
@@ -39,19 +40,26 @@ void FileGrid(char* argv[]){
 		}
 	}
 	inputfile.close();
+
+	//the number of indices is equal to Size^2, so we can tell what the ROWxCOL should be
+	//should be based off how many integers were in the file
 	Size = sqrt(temp.size());
 	SizeSquared = (Size * Size);
 
+	//make our initial vector to hold what nodes each indice is pointing at
 	for (int i = 0; i < (SizeSquared); ++i)
 		ScoreGrid.push_back(0);
 
+	//create our grid
 	int** Maze = new int*[Size];
 	for (int i = 0; i < Size; ++i)
 		Maze[i] = new int[Size];
 
+	//default the vector indices to zero to avoid error by uninitialized memory
 	for (int i = 0; i < (SizeSquared); ++i)
 		ScoreGrid[i] = 0;
 
+	//load our grid from the integers from the file
 	for (int i = 0; i < Size; ++i){
 		for (int j = 0; j < Size; ++j){
 			Maze[i][j] = temp[incr];
@@ -81,6 +89,8 @@ void FileGrid(char* argv[]){
 				if (Maze[i - 1][j] == Maze[i][j]){
 					if (left){
 						if (ScoreGrid[((i - 1) * Size) + j] != ScoreGrid[(i * Size) + j]){
+							//join our two clusters into one union and make them all point
+							//at the same node
 							temp = MyMap.find(ScoreGrid[((i - 1) * Size) + j])->second;
 							MyMap.erase(ScoreGrid[((i - 1) * Size) + j]);
 							for (int it = 0; it < temp.size(); ++it){
@@ -97,7 +107,7 @@ void FileGrid(char* argv[]){
 					up = true;
 				}
 			}
-			if (!up && !left){
+			if (!up && !left){//if going up and left failed, our current spot is a new node
 				MyMap.insert(pair<int, vector<int>>((i * Size) + j, list));
 				MyMap[(i * Size) + j].push_back((i * Size) + j);
 				ScoreGrid[((i * Size) + j)] = ((i * Size) + j);
