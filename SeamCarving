@@ -2,36 +2,84 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <sstream>
+#include <sstream>//stringstream
+#include <cmath>//abs
 
 using namespace std;
 
-void WeightGrid(vector<int> &);
-void ReadImg(/*char*[]*/string, vector<vector<int>>&, int&, int&);
+void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns);
+void ReadImg(/*char*[]*/string, vector<vector<int>>& Picture, int& Rows, int& Columns);
 
 int main(int argc, char* argv[]){
-	vector<vector<int>> Picture;
+	vector<vector<int>> Picture, Weighted, DynamicSums;
 	int Rows, Columns;
 
 	//ReadImg(argv, Picture, Rows, Columns);
-	ReadImg("bug.pgm", Picture, Rows, Columns);
+	ReadImg("TestCase2.pgm", Picture, Rows, Columns);
+	WeightGrid(Picture, Weighted, Rows, Columns);
+
+	//Testing Purposes
+	for (int i = 0; i < Rows; ++i){
+		for (int j = 0; j < Columns; ++j){
+			cout << Picture[i][j] << " ";
+		}
+		cout << endl;
+	}
+
+	cout << endl << endl;
+
+	for (int i = 0; i < Rows; ++i){
+		for (int j = 0; j < Columns; ++j){
+			cout << Weighted[i][j] << " ";
+		}
+		cout << endl;
+	}
 
 	return 0;
 }
+
+void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns){
+
+	vector<int> temp;
+	int NodeWeight = 0;
+
+	for (int i = 0; i < Rows; ++i){
+		Weighted.push_back(temp);
+		for (int j = 0; j < Columns; ++j){
+			NodeWeight = 0;
+			if (i - 1 >= 0){
+				NodeWeight += abs(Picture[i][j] - Picture[i - 1][j]);
+			}
+			if (i + 1 < Rows){
+				NodeWeight += abs(Picture[i][j] - Picture[i + 1][j]);
+			}
+			if (j - 1 >= 0){
+				NodeWeight += abs(Picture[i][j] - Picture[i][j - 1]);
+			}
+			if (j + 1 < Columns){
+				NodeWeight += abs(Picture[i][j] - Picture[i][j + 1]);
+			}
+
+			Weighted[i].push_back(NodeWeight);
+		}
+	}
+	return;
+}
+
 
 void ReadImg(/*char* argv[]*/string arg,vector<vector<int>>& Picture, int& Rows, int& Columns){
 	//vector<vector<int>> Picture;
 	vector<int> temp;
 	ifstream InputFile (arg);//(argv[1]);
 	string line;
-	int tempNum, CurrentRow = 0, CurrentCol = 0;
+	int tempNum, CurrentRow = -1, CurrentCol = 0;
 
 	for (int i = 0; i < 4; ++i){
 		getline(InputFile, line);
 		if (i == 2){
 			stringstream stream(line);
-			stream >> Rows;
 			stream >> Columns;
+			stream >> Rows;
 		}		
 	}
 
@@ -42,7 +90,7 @@ void ReadImg(/*char* argv[]*/string arg,vector<vector<int>>& Picture, int& Rows,
 				Picture.push_back(temp);
 				++CurrentRow;
 			}
-			Picture[CurrentRow - 1].push_back(tempNum);
+			Picture[CurrentRow].push_back(tempNum);
 			CurrentCol = (CurrentCol + 1) % Columns;
 		}
 	}
