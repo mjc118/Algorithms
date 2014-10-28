@@ -11,7 +11,10 @@ using namespace std;
 
 void ReadImg(/*char*[]*/string, vector<vector<int>>& Picture, int& Rows, int& Columns);
 void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns);
+//used for vertical seams
 void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
+//used for horizontal seams
+void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
 
 int main(int argc, char* argv[]){
 	vector<vector<int>> Picture, Weighted, DynamicSums;
@@ -23,6 +26,9 @@ int main(int argc, char* argv[]){
 	SumTopDown(Weighted, DynamicSums, Rows, Columns);
 
 	//Testing Purposes
+
+	cout << "Initial Picture Read From File\n";
+
 	for (int i = 0; i < Rows; ++i){
 		for (int j = 0; j < Columns; ++j){
 			cout << Picture[i][j] << " ";
@@ -30,7 +36,7 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
-	cout << endl << endl;
+	cout << endl << "Weighted Grid e(i,j)\n";
 
 	for (int i = 0; i < Rows; ++i){
 		for (int j = 0; j < Columns; ++j){
@@ -39,7 +45,7 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
-	cout << endl << endl;
+	cout << endl << "Top-Down\n";
 
 	for (int i = 0; i < Rows; ++i){
 		for (int j = 0; j < Columns; ++j){
@@ -48,14 +54,78 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
+	cout << endl << "Left-Right\n";
+
+	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
+
+	for (int i = 0; i < Rows; ++i){
+		for (int j = 0; j < Columns; ++j){
+			cout << DynamicSums[i][j] << " ";
+		}
+		cout << endl;
+	}
+	
+	//clear does not deallocate the vectors memory, just clears the elements being held
+	//by calling the destructor recursively on each of the inner vectors
+	Picture.clear();
+	Weighted.clear();
+	DynamicSums.clear();
+
+	//using an empty vector and swap will deallocate the memory
+	//so the "capacity" will go to 0, hence the vector is deallocating it's allotted memory
+	vector<vector<int>>().swap(Picture);
+	vector<vector<int>>().swap(Weighted);
+	vector<vector<int>>().swap(DynamicSums);
 	return 0;
 }
 
-void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns){
-	vector<int> temp;
+void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns){
+	vector<int> emptyVector;
 	int CurrentMin = -1;
 
-	DynamicSums.push_back(temp);
+	//clear our grid everytime since we must recalculate our seam thread sums every time the grid changes
+	DynamicSums.clear();
+
+	//push our initial left column onto our 2d vector
+	for (int i = 0; i < Rows; ++i){
+		DynamicSums.push_back(emptyVector);
+		DynamicSums[i].push_back(Weighted[i][0]);
+	}
+
+	for (int j = 1; j < Columns; ++j){
+		for (int i = 0; i < Rows; ++i){
+			CurrentMin = -1;
+
+			if (i - 1 >= 0){//check if we can go left and up
+				CurrentMin = Weighted[i][j] + DynamicSums[i - 1][j - 1];
+			}
+
+			if (CurrentMin == -1){//case that we are on the top row
+				CurrentMin = Weighted[i][j] + DynamicSums[i][j - 1];
+			}
+			else{
+				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i][j - 1]);
+			}
+
+			if (i + 1 < Rows){//check if we can go left and down
+				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i + 1][j - 1]);
+			}
+
+			DynamicSums[i].push_back(CurrentMin);
+		}
+	}
+
+	return;
+}
+
+void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns){
+	vector<int> emptyVector;
+	int CurrentMin = -1;
+	
+	//clear our grid everytime since we must recalculate our seam thread sums every time the grid changes
+	DynamicSums.clear();
+
+	DynamicSums.push_back(emptyVector);
 
 	//push back our initial row
 	for (int i = 0; i < Columns; ++i){
@@ -63,11 +133,11 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 	}
 
 	for (int i = 1; i < Rows; ++i){
-		DynamicSums.push_back(temp);
+		DynamicSums.push_back(emptyVector);
 		for (int j = 0; j < Columns; ++j){
 			CurrentMin = -1;
 			
-			if (j - 1 >= 0){//check if we can go diagonally left
+			if (j - 1 >= 0){//check if we can go up and left
 				CurrentMin = Weighted[i][j] + DynamicSums[i - 1][j - 1];
 			}
 			
@@ -78,7 +148,7 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i - 1][j]);
 			}
 
-			if (j + 1 < Columns){//check if we can go diagonally right
+			if (j + 1 < Columns){//check if we can go up and right
 				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i - 1][j + 1]);
 			}
 
@@ -92,11 +162,11 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 
 void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns){
 
-	vector<int> temp;
+	vector<int> emptyVector;
 	int NodeWeight = 0;
 
 	for (int i = 0; i < Rows; ++i){
-		Weighted.push_back(temp);
+		Weighted.push_back(emptyVector);
 		for (int j = 0; j < Columns; ++j){
 			NodeWeight = 0;
 			if (i - 1 >= 0){
@@ -121,7 +191,7 @@ void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int
 
 void ReadImg(/*char* argv[]*/string arg,vector<vector<int>>& Picture, int& Rows, int& Columns){
 	//vector<vector<int>> Picture;
-	vector<int> temp;
+	vector<int> emptyVector;
 	ifstream InputFile (arg);//(argv[1]);
 	string line;
 	int tempNum, CurrentRow = -1, CurrentCol = 0;
@@ -139,7 +209,7 @@ void ReadImg(/*char* argv[]*/string arg,vector<vector<int>>& Picture, int& Rows,
 		stringstream stream(line);
 		while (stream >> tempNum){
 			if (CurrentCol == 0){
-				Picture.push_back(temp);
+				Picture.push_back(emptyVector);
 				++CurrentRow;
 			}
 			Picture[CurrentRow].push_back(tempNum);
