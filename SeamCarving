@@ -4,11 +4,14 @@
 #include <vector>
 #include <sstream>//stringstream
 #include <cmath>//abs
+#include <algorithm>//min
 
 using namespace std;
 
-void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns);
+
 void ReadImg(/*char*[]*/string, vector<vector<int>>& Picture, int& Rows, int& Columns);
+void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns);
+void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
 
 int main(int argc, char* argv[]){
 	vector<vector<int>> Picture, Weighted, DynamicSums;
@@ -17,6 +20,7 @@ int main(int argc, char* argv[]){
 	//ReadImg(argv, Picture, Rows, Columns);
 	ReadImg("TestCase2.pgm", Picture, Rows, Columns);
 	WeightGrid(Picture, Weighted, Rows, Columns);
+	SumTopDown(Weighted, DynamicSums, Rows, Columns);
 
 	//Testing Purposes
 	for (int i = 0; i < Rows; ++i){
@@ -35,8 +39,56 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
+	cout << endl << endl;
+
+	for (int i = 0; i < Rows; ++i){
+		for (int j = 0; j < Columns; ++j){
+			cout << DynamicSums[i][j] << " ";
+		}
+		cout << endl;
+	}
+
 	return 0;
 }
+
+void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns){
+	vector<int> temp;
+	int CurrentMin = -1;
+
+	DynamicSums.push_back(temp);
+
+	//push back our initial row
+	for (int i = 0; i < Columns; ++i){
+		DynamicSums[0].push_back(Weighted[0][i]);
+	}
+
+	for (int i = 1; i < Rows; ++i){
+		DynamicSums.push_back(temp);
+		for (int j = 0; j < Columns; ++j){
+			CurrentMin = -1;
+			
+			if (j - 1 >= 0){//check if we can go diagonally left
+				CurrentMin = Weighted[i][j] + DynamicSums[i - 1][j - 1];
+			}
+			
+			if (CurrentMin == -1){//case where you are on left wall of grid
+				CurrentMin = Weighted[i][j] + DynamicSums[i - 1][j];
+			}
+			else{
+				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i - 1][j]);
+			}
+
+			if (j + 1 < Columns){//check if we can go diagonally right
+				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i - 1][j + 1]);
+			}
+
+			DynamicSums[i].push_back(CurrentMin);
+		}
+	}
+
+	return;
+}
+
 
 void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns){
 
