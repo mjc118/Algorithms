@@ -1,0 +1,52 @@
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <vector>
+#include <sstream>
+
+using namespace std;
+
+void WeightGrid(vector<int> &);
+void ReadImg(/*char*[]*/string, vector<vector<int>>&, int&, int&);
+
+int main(int argc, char* argv[]){
+	vector<vector<int>> Picture;
+	int Rows, Columns;
+
+	//ReadImg(argv, Picture, Rows, Columns);
+	ReadImg("bug.pgm", Picture, Rows, Columns);
+
+	return 0;
+}
+
+void ReadImg(/*char* argv[]*/string arg,vector<vector<int>>& Picture, int& Rows, int& Columns){
+	//vector<vector<int>> Picture;
+	vector<int> temp;
+	ifstream InputFile (arg);//(argv[1]);
+	string line;
+	int tempNum, CurrentRow = 0, CurrentCol = 0;
+
+	for (int i = 0; i < 4; ++i){
+		getline(InputFile, line);
+		if (i == 2){
+			stringstream stream(line);
+			stream >> Rows;
+			stream >> Columns;
+		}		
+	}
+
+	while (getline(InputFile, line)){
+		stringstream stream(line);
+		while (stream >> tempNum){
+			if (CurrentCol == 0){
+				Picture.push_back(temp);
+				++CurrentRow;
+			}
+			Picture[CurrentRow - 1].push_back(tempNum);
+			CurrentCol = (CurrentCol + 1) % Columns;
+		}
+	}
+
+	return;
+}
+
