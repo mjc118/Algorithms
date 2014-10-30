@@ -22,6 +22,8 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 
 //used for horizontal seams
 void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
+
+//remove appropriate seam
 void RemoveVerticalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
 void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
 
