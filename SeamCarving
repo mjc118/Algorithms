@@ -23,6 +23,7 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 //used for horizontal seams
 void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
 void RemoveVerticalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
+void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns);
 
 int main(int argc, char* argv[]){
 	vector<vector<int>> Picture, Weighted, DynamicSums;
@@ -63,7 +64,7 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
-	/*cout << endl << "Left-Right\n";
+	cout << endl << "Left-Right\n";
 
 	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
 
@@ -72,11 +73,12 @@ int main(int argc, char* argv[]){
 			cout << DynamicSums[i][j] << " ";
 		}
 		cout << endl;
-	}*/
+	}
 
-	RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
-	SumTopDown(Weighted, DynamicSums, Rows, Columns);
-
+	RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
+	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
+	//RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
+	//SumTopDown(Weighted, DynamicSums, Rows, Columns);
 	cout << endl << "Initial Picture Read From File\n";
 
 	for (int i = 0; i < Rows; ++i){
@@ -95,7 +97,7 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
-	cout << endl << "Top-Down\n";
+	cout << endl << "Left-Right\n";
 
 	for (int i = 0; i < Rows; ++i){
 		for (int j = 0; j < Columns; ++j){
@@ -182,7 +184,6 @@ void ReWeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, v
 	int& Rows, int& Columns, bool WhichWay){
 
 	int CurrentRow = Rows - 1;//for vertical seam reweighting
-	int CurrentCol = Columns - 1;//for horizontal seam reweighting
 	int Pos1, Pos2;//holds our two nodes that need reweighted for that row/column
 	int NodeWeight = 0;
 
@@ -231,7 +232,44 @@ void ReWeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, v
 		}
 	}
 	else{
-		//handle fixing horizontal seams being removed
+		for (int j = 0; j < Columns; ++j){
+			Pos1 = NodeCoordinates[j * 2];//indice below us that will shift up
+			Pos2 = NodeCoordinates[(j * 2) + 1];//indice above us
+
+			if (Pos1 < Rows){
+				NodeWeight = 0;
+				if (Pos1 - 1 >= 0){
+					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1 - 1][j]);
+				}
+				if (Pos1 + 1 < Rows){
+					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1 + 1][j]);
+				}
+				if (j - 1 >= 0){
+					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1][j - 1]);
+				}
+				if (j + 1 < Columns){
+					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1][j + 1]);
+				}
+				Weighted[Pos1][j] = NodeWeight;
+			}
+
+			if (Pos2 >= 0){
+				NodeWeight = 0;
+				if (Pos2 - 1 >= 0){
+					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2 - 1][j]);
+				}
+				if (Pos2 + 1 < Rows){
+					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2 + 1][j]);
+				}
+				if (j - 1 >= 0){
+					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2][j - 1]);
+				}
+				if (j + 1 < Columns){
+					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2][j + 1]);
+				}
+				Weighted[Pos2][j] = NodeWeight;
+			}
+		}
 	}
 
 	NodeCoordinates.clear();
@@ -390,6 +428,91 @@ void RemoveVerticalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Weigh
 	//decrement columns since we removed an indice on every row
 	--Columns;
 	ReWeightGrid(Picture, Weighted, NodeCoordinates, Rows, Columns, true);
+
+	return;
+}
+
+void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns){
+
+	vector<int> NodeCoordinates;
+	int NodePos;//Position of Node being removed
+	int Minimum;//Keeps track of minimum
+	int BotRightDiagonal;//needed for calculating how to reach right diagonal
+	bool TookTopRight, TookRight;//needed to calculate NodePos 
+
+	//initial condition
+	Minimum = DynamicSums[0][0];
+	NodePos = 0;
+
+	//find our initial starting position
+	for (int i = 1; i < Rows; ++i){
+		if (DynamicSums[i][0] < Minimum){
+			Minimum = DynamicSums[i][0];
+			NodePos = i;
+		}
+	}
+
+	//keep track of what we will have to re-weight later on our energy grid
+	NodeCoordinates.push_back(NodePos);//indice below us that will shift up
+	NodeCoordinates.push_back(NodePos - 1);//indice above us
+
+	//shifting the entire column up, which simulates deleting the node
+	//we will delete our bottom row off our 2d vector after all columns have been handled
+	for (int i = NodePos; i < Rows - 1; ++i){
+		Picture[i][0] = Picture[i + 1][0];
+		Weighted[i][0] = Weighted[i + 1][0];
+	}
+
+	for (int j = 1; j < Columns; ++j){
+		Minimum = -1;
+		TookTopRight = TookRight = false;
+
+		if (NodePos - 1 >= 0){//check if we are on top row
+			--NodePos;
+			Minimum = DynamicSums[NodePos][j];
+			TookTopRight = true;
+		}
+
+		if (Minimum == -1){
+			Minimum = DynamicSums[NodePos][j];
+		}
+		else if (DynamicSums[NodePos + 1][j] < Minimum){
+			++NodePos;
+			Minimum = DynamicSums[NodePos][j];
+			TookRight = true;
+		}
+
+		//calculating how far down we need to shift to get BotRight diagonal indice
+		//this is based on where the current minimum's location is
+		if (TookTopRight && !TookRight)
+			BotRightDiagonal = NodePos + 2;
+		else
+			BotRightDiagonal = NodePos + 1;
+
+		if (BotRightDiagonal < Rows){//check if we are on bottom row
+			if (DynamicSums[BotRightDiagonal][j] < Minimum){
+				NodePos = BotRightDiagonal;
+			}
+		}
+
+		NodeCoordinates.push_back(NodePos);//indice below us that will shift up
+		NodeCoordinates.push_back(NodePos - 1);//indice above us
+
+		//pseudo delete our node that we determined our seam will take
+		for (int i = NodePos; i < Rows - 1; ++i){
+			Picture[i][j] = Picture[i + 1][j];
+			Weighted[i][j] = Weighted[i + 1][j];
+		}
+		
+	}
+
+	//pop off the last vector in our matrices to delete a row
+	//this happens after the nodes below our seam have been shifted upwards appropriately
+	Picture.pop_back();
+	Weighted.pop_back();
+	--Rows;
+
+	ReWeightGrid(Picture, Weighted, NodeCoordinates, Rows, Columns, false);
 
 	return;
 }
