@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<?php
+	$Operation = "";
+	if($_SERVER['REQUEST_METHOD'] === 'POST'){
+		if(isset($_POST['output'])){
+			$answer = $_POST['output'];
+		}
+		else{
+			$answer = "0.0";
+		}
+		if(isset($_POST['input'])){
+			$Number = $_POST['input'];
+		}
+		else{
+			$Number = "0.0";
+		}
+		
+		if(isset($_POST['add'])){
+			$Operation = "<p>Add</p>";
+			$answer += $Number;
+		}
+		elseif(isset($_POST['subtract'])){
+			$Operation = "<p>Subtract</p>";
+			$answer -= $Number;
+		}
+		elseif(isset($_POST['multiply'])){
+			$Operation = "<p>Multiply</p>";
+			$answer *= $Number;
+		}
+		elseif(isset($_POST['divide'])){
+			if($Number == 0)
+				$Operation = "<p>No Dividing by Zero!</p>";
+			else{
+				$answer /= $Number;
+				$Operation = "<p>Divide</p>";
+			}
+		}
+		elseif(isset($_POST['equal'])){
+			$Operation = "<p>Equal</p>";
+			$answer = $Number;
+		}
+	}
+?>
+<html>
+	<head>
+		<meta charset="utf-8">
+		<title>Assignment 4</title>
+		<style>
+			#add, #multiply, #divide, #subtract, #equal{
+				display: block;
+				width: 100%;
+			}
+			#input, #output{
+				display: block;
+				width: 70%;
+				float: right;
+				text-align: right;
+			}
+			table{
+				border-radius: 5px; 
+				border: 5px solid black;
+				background-color: lightblue;
+				padding: 0;
+				margin: 0 auto;
+			}
+			div.php{
+				margin: 0 auto;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body style="background-color: forestgreen">
+		<span id="name" style="color:skyblue">Michael Crabtree</span>
+		<p id="date">October 29, 2014</p>
+		<h1 id="assignment" style="text-align:center">Assignment 4</h1>
+		<h2 id="class-title" style="text-align:center">Internet Systems Programming</h2>
+		<div>
+			<table width="200" height="200">
+				<thead>
+					<tr> <th colspan="3">PHP Calculator</th></tr>
+				</thead>
+				<form id="Calculator" name="Calculator" method="post" attribute="post" action='Calc.php'>
+					<tr><td colspan="3"><input id="output" name="output" type="text" value="<?php echo(isset($answer))?$answer:'0.0';?>" readonly></td></tr>
+					<tr><td colspan="3"><input id="input" name="input" type="text" value="<?php echo (isset($Number))?$Number:'0'; ?>" ></td></tr>
+					<tr>
+						<td><input id="add" name="add" type="submit" value="+"></td>
+						<td><input id="multiply" name="multiply" type="submit" value="*"></td>	
+						<td><input id="divide" name="divide" type="submit" value="/"></td>
+					</tr>
+					<tr>
+						<td><input id="subtract" name="subtract" type="submit" value="-"></td>
+						<td colspan="2"><input id="equal" name="equal" type="submit" value="="></td>
+					</tr>
+				</form>
+			</table>
+		</div>
+		<div class="php">
+			<?php 
+				echo "<h3>" . $Operation . "<h3>";
+			?>
+		</div>
+	</body>
+</html>
