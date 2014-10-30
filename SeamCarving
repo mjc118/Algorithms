@@ -9,7 +9,7 @@
 using namespace std;
 
 
-void ReadImg(/*char*[]*/string, vector<vector<int>>& Picture, int& Rows, int& Columns);
+void ReadImg(char* argv[], vector<vector<int>>& Picture, int& Rows, int& Columns);
 void WriteImg(char* argv[], vector<vector<int>>& Picture, int& Rows, int& Columns);
 void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns);
 
@@ -33,19 +33,16 @@ int main(int argc, char* argv[]){
 	vector<int> NodeCoordinates;
 	int Rows, Columns, VerticalSeams, HorizontalSeams;
 
-	/*if (argc != 4){
+	if (argc != 4){
 		cout << "Incorrect amount of Parameters\n";
 		return 0;
 	}
 
 	//stoi only supported in C++ 11
 	VerticalSeams = stoi(argv[2]);
-	HorizontalSeams = stoi(argv[3]);*/
+	HorizontalSeams = stoi(argv[3]);
 
-	VerticalSeams = 1;
-	HorizontalSeams = 0;
-	//ReadImg(argv[1], Picture, Rows, Columns);
-	ReadImg("TestCase2.pgm", Picture, Rows, Columns);
+	ReadImg(argv, Picture, Rows, Columns);
 	WeightGrid(Picture, Weighted, Rows, Columns);
 
 	//loop to handle removing vertical seams
@@ -70,80 +67,7 @@ int main(int argc, char* argv[]){
 		RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	}
 
-	char *argb[2] = { "", "TestImage.pgm" };
-	WriteImg( argb, Picture, Rows, Columns);
-	
-
-	//Testing Purposes
-
-	cout << "Initial Picture Read From File\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << Picture[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	cout << endl << "Weighted Grid e(i,j)\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << Weighted[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	SumTopDown(Weighted, DynamicSums, Rows, Columns);
-	cout << endl << "Top-Down\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << DynamicSums[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
-	cout << endl << "Left-Right\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << DynamicSums[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
-	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
-	//SumTopDown(Weighted, DynamicSums, Rows, Columns);
-	//RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
-	cout << endl << "Initial Picture Read From File\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << Picture[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	cout << endl << "Weighted Grid e(i,j)\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << Weighted[i][j] << " ";
-		}
-		cout << endl;
-	}
-
-	cout << endl << "Left-Right\n";
-
-	for (int i = 0; i < Rows; ++i){
-		for (int j = 0; j < Columns; ++j){
-			cout << DynamicSums[i][j] << " ";
-		}
-		cout << endl;
-	}
+	WriteImg(argv, Picture, Rows, Columns);
 	
 	//clear does not deallocate the vectors memory, just clears the elements being held
 	//by calling the destructor recursively on each of the inner vectors
@@ -159,10 +83,10 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void ReadImg(/*char* argv[]*/string argv, vector<vector<int>>& Picture, int& Rows, int& Columns){
+void ReadImg(char* argv[], vector<vector<int>>& Picture, int& Rows, int& Columns){
 	//vector<vector<int>> Picture;
 	vector<int> emptyVector;
-	ifstream InputFile(argv);//(argv[1]);
+	ifstream InputFile(argv[1]);
 	string line;
 	int tempNum, CurrentRow = -1, CurrentCol = 0;
 
