@@ -10,6 +10,7 @@ using namespace std;
 
 
 void ReadImg(/*char*[]*/string, vector<vector<int>>& Picture, int& Rows, int& Columns);
+void WriteImg(char* argv[], vector<vector<int>>& Picture, int& Rows, int& Columns);
 void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns);
 
 //ReWeight our grid after removing a seam, only ReWeighting Nodes we kept track of
@@ -30,12 +31,48 @@ void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Wei
 int main(int argc, char* argv[]){
 	vector<vector<int>> Picture, Weighted, DynamicSums;
 	vector<int> NodeCoordinates;
-	int Rows, Columns;
+	int Rows, Columns, VerticalSeams, HorizontalSeams;
 
-	//ReadImg(argv, Picture, Rows, Columns);
+	/*if (argc != 4){
+		cout << "Incorrect amount of Parameters\n";
+		return 0;
+	}
+
+	//stoi only supported in C++ 11
+	VerticalSeams = stoi(argv[2]);
+	HorizontalSeams = stoi(argv[3]);*/
+
+	VerticalSeams = 1;
+	HorizontalSeams = 0;
+	//ReadImg(argv[1], Picture, Rows, Columns);
 	ReadImg("TestCase2.pgm", Picture, Rows, Columns);
 	WeightGrid(Picture, Weighted, Rows, Columns);
-	SumTopDown(Weighted, DynamicSums, Rows, Columns);
+
+	//loop to handle removing vertical seams
+	for (int i = 0; i < VerticalSeams; ++i){
+		if (Picture[0].size() < 1){
+			cout << "There are not that many Vertical Seams in the Picture!\n";
+			break;
+		}
+
+		SumTopDown(Weighted, DynamicSums, Rows, Columns);
+		RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
+	}
+
+	//loop to handle removing horizontal seams
+	for (int i = 0; i < HorizontalSeams; ++i){
+		if (Picture.size() < 1){
+			cout << "There are not that many Horizontal Seams in the Picture!\n";
+			break;
+		}
+
+		SumLeftRight(Weighted, DynamicSums, Rows, Columns);
+		RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
+	}
+
+	char *argb[2] = { "", "TestImage.pgm" };
+	WriteImg( argb, Picture, Rows, Columns);
+	
 
 	//Testing Purposes
 
@@ -57,6 +94,7 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
+	SumTopDown(Weighted, DynamicSums, Rows, Columns);
 	cout << endl << "Top-Down\n";
 
 	for (int i = 0; i < Rows; ++i){
@@ -66,9 +104,8 @@ int main(int argc, char* argv[]){
 		cout << endl;
 	}
 
-	cout << endl << "Left-Right\n";
-
 	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
+	cout << endl << "Left-Right\n";
 
 	for (int i = 0; i < Rows; ++i){
 		for (int j = 0; j < Columns; ++j){
@@ -79,8 +116,8 @@ int main(int argc, char* argv[]){
 
 	RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	SumLeftRight(Weighted, DynamicSums, Rows, Columns);
-	//RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	//SumTopDown(Weighted, DynamicSums, Rows, Columns);
+	//RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	cout << endl << "Initial Picture Read From File\n";
 
 	for (int i = 0; i < Rows; ++i){
@@ -122,10 +159,10 @@ int main(int argc, char* argv[]){
 	return 0;
 }
 
-void ReadImg(/*char* argv[]*/string arg, vector<vector<int>>& Picture, int& Rows, int& Columns){
+void ReadImg(/*char* argv[]*/string argv, vector<vector<int>>& Picture, int& Rows, int& Columns){
 	//vector<vector<int>> Picture;
 	vector<int> emptyVector;
-	ifstream InputFile(arg);//(argv[1]);
+	ifstream InputFile(argv);//(argv[1]);
 	string line;
 	int tempNum, CurrentRow = -1, CurrentCol = 0;
 
@@ -150,9 +187,35 @@ void ReadImg(/*char* argv[]*/string arg, vector<vector<int>>& Picture, int& Rows
 		}
 	}
 
+	InputFile.close();
+
 	return;
 }
 
+void WriteImg(char* argv[], vector<vector<int>>& Picture, int& Rows, int& Columns){
+	string Name = argv[1];
+	Name.erase(Name.size() - 4);//only supported in C++ 11
+	Name += "_processed.pgm";
+
+	ofstream OutPutFile(Name);
+
+	OutPutFile << "P2\n";
+	OutPutFile << "#Image Processed by Michael Crabtree\n";
+	OutPutFile << to_string(Columns) + " " + to_string(Rows) << endl;
+	OutPutFile << "255\n";
+
+	for (int i = 0; i < Rows; ++i){
+		for (int j = 0; j < Columns; ++j){
+			if (j == Columns - 1)
+				OutPutFile << to_string(Picture[i][j]) << endl;
+			else
+				OutPutFile << to_string(Picture[i][j]) + " ";
+		}
+	}
+
+	OutPutFile.close();
+	return;
+}
 
 void WeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, int& Rows, int& Columns){
 
@@ -515,6 +578,8 @@ void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Wei
 	//this happens after the nodes below our seam have been shifted upwards appropriately
 	Picture.pop_back();
 	Weighted.pop_back();
+
+	//decrement rows since we just lost a node in every column
 	--Rows;
 
 	ReWeightGrid(Picture, Weighted, NodeCoordinates, Rows, Columns, false);
