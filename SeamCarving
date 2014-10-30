@@ -186,6 +186,7 @@ void ReWeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, v
 	int& Rows, int& Columns, bool WhichWay){
 
 	int CurrentRow = Rows - 1;//for vertical seam reweighting
+	int CurrentCol = Columns - 1;//for horizonatl seam reweighting
 	int Pos1, Pos2;//holds our two nodes that need reweighted for that row/column
 	int NodeWeight = 0;
 
@@ -241,36 +242,38 @@ void ReWeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, v
 			if (Pos1 < Rows){
 				NodeWeight = 0;
 				if (Pos1 - 1 >= 0){
-					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1 - 1][j]);
+					NodeWeight += abs(Picture[Pos1][CurrentCol] - Picture[Pos1 - 1][CurrentCol]);
 				}
 				if (Pos1 + 1 < Rows){
-					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1 + 1][j]);
+					NodeWeight += abs(Picture[Pos1][CurrentCol] - Picture[Pos1 + 1][CurrentCol]);
 				}
-				if (j - 1 >= 0){
-					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1][j - 1]);
+				if (CurrentCol - 1 >= 0){
+					NodeWeight += abs(Picture[Pos1][CurrentCol] - Picture[Pos1][CurrentCol - 1]);
 				}
-				if (j + 1 < Columns){
-					NodeWeight += abs(Picture[Pos1][j] - Picture[Pos1][j + 1]);
+				if (CurrentCol + 1 < Columns){
+					NodeWeight += abs(Picture[Pos1][CurrentCol] - Picture[Pos1][CurrentCol + 1]);
 				}
-				Weighted[Pos1][j] = NodeWeight;
+				Weighted[Pos1][CurrentCol] = NodeWeight;
 			}
 
 			if (Pos2 >= 0){
 				NodeWeight = 0;
 				if (Pos2 - 1 >= 0){
-					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2 - 1][j]);
+					NodeWeight += abs(Picture[Pos2][CurrentCol] - Picture[Pos2 - 1][CurrentCol]);
 				}
 				if (Pos2 + 1 < Rows){
-					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2 + 1][j]);
+					NodeWeight += abs(Picture[Pos2][CurrentCol] - Picture[Pos2 + 1][CurrentCol]);
 				}
-				if (j - 1 >= 0){
-					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2][j - 1]);
+				if (CurrentCol - 1 >= 0){
+					NodeWeight += abs(Picture[Pos2][CurrentCol] - Picture[Pos2][CurrentCol - 1]);
 				}
-				if (j + 1 < Columns){
-					NodeWeight += abs(Picture[Pos2][j] - Picture[Pos2][j + 1]);
+				if (CurrentCol + 1 < Columns){
+					NodeWeight += abs(Picture[Pos2][CurrentCol] - Picture[Pos2][CurrentCol + 1]);
 				}
-				Weighted[Pos2][j] = NodeWeight;
+				Weighted[Pos2][CurrentCol] = NodeWeight;
 			}
+			//traverse to the left
+			--CurrentCol;
 		}
 	}
 
@@ -443,13 +446,13 @@ void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Wei
 	bool TookTopRight, TookRight;//needed to calculate NodePos 
 
 	//initial condition
-	Minimum = DynamicSums[0][0];
+	Minimum = DynamicSums[0][Columns - 1];
 	NodePos = 0;
 
 	//find our initial starting position
 	for (int i = 1; i < Rows; ++i){
-		if (DynamicSums[i][0] < Minimum){
-			Minimum = DynamicSums[i][0];
+		if (DynamicSums[i][Columns - 1] < Minimum){
+			Minimum = DynamicSums[i][Columns - 1];
 			NodePos = i;
 		}
 	}
@@ -461,11 +464,11 @@ void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Wei
 	//shifting the entire column up, which simulates deleting the node
 	//we will delete our bottom row off our 2d vector after all columns have been handled
 	for (int i = NodePos; i < Rows - 1; ++i){
-		Picture[i][0] = Picture[i + 1][0];
-		Weighted[i][0] = Weighted[i + 1][0];
+		Picture[i][Columns - 1] = Picture[i + 1][Columns - 1];
+		Weighted[i][Columns - 1] = Weighted[i + 1][Columns - 1];
 	}
 
-	for (int j = 1; j < Columns; ++j){
+	for (int j = Columns - 2; j >= 0; --j){
 		Minimum = -1;
 		TookTopRight = TookRight = false;
 
