@@ -30,7 +30,7 @@ void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Wei
 
 int main(int argc, char* argv[]){
 	vector<vector<int>> Picture, Weighted, DynamicSums;
-	vector<int> NodeCoordinates;
+	vector<int> NodeCoordinates, emptyVector;
 	int Rows, Columns, VerticalSeams, HorizontalSeams;
 
 	if (argc != 4){
@@ -45,12 +45,20 @@ int main(int argc, char* argv[]){
 	ReadImg(argv, Picture, Rows, Columns);
 	WeightGrid(Picture, Weighted, Rows, Columns);
 
+	for (int i = 0; i < Rows; ++i){
+		DynamicSums.push_back(emptyVector);
+		for (int j = 0; j < Columns; ++j){
+			DynamicSums[i].push_back(0);
+		}
+	}
+
 	//loop to handle removing vertical seams
 	for (int i = 0; i < VerticalSeams; ++i){
 		if (Picture[0].size() < 1){
 			cout << "There are not that many Vertical Seams in the Picture!\n";
 			break;
 		}
+		cout << "Vertical Seam:" << i + 1 << endl;
 
 		SumTopDown(Weighted, DynamicSums, Rows, Columns);
 		RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
@@ -62,13 +70,15 @@ int main(int argc, char* argv[]){
 			cout << "There are not that many Horizontal Seams in the Picture!\n";
 			break;
 		}
+		cout << "Horizontal Seam:" << i + 1 << endl;
 
 		SumLeftRight(Weighted, DynamicSums, Rows, Columns);
 		RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	}
 
 	WriteImg(argv, Picture, Rows, Columns);
-	
+
+	cout << "Image Processing Complete\n";
 	//clear does not deallocate the vectors memory, just clears the elements being held
 	//by calling the destructor recursively on each of the inner vectors
 	Picture.clear();
@@ -271,26 +281,20 @@ void ReWeightGrid(vector<vector<int>>& Picture, vector<vector<int>>& Weighted, v
 void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums, int& Rows, int& Columns){
 	vector<int> emptyVector;
 	int CurrentMin = -1;
-	
-	//clear our grid everytime since we must recalculate our seam thread sums every time the grid changes
-	DynamicSums.clear();
-
-	DynamicSums.push_back(emptyVector);
 
 	//push back our initial row
 	for (int i = 0; i < Columns; ++i){
-		DynamicSums[0].push_back(Weighted[0][i]);
+		DynamicSums[0][i] = Weighted[0][i];
 	}
 
 	for (int i = 1; i < Rows; ++i){
-		DynamicSums.push_back(emptyVector);
 		for (int j = 0; j < Columns; ++j){
 			CurrentMin = -1;
-			
+
 			if (j - 1 >= 0){//check if we can go up and left
 				CurrentMin = Weighted[i][j] + DynamicSums[i - 1][j - 1];
 			}
-			
+
 			if (CurrentMin == -1){//case where you are on left wall of grid
 				CurrentMin = Weighted[i][j] + DynamicSums[i - 1][j];
 			}
@@ -302,7 +306,7 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i - 1][j + 1]);
 			}
 
-			DynamicSums[i].push_back(CurrentMin);
+			DynamicSums[i][j] = CurrentMin;
 		}
 	}
 
@@ -313,13 +317,9 @@ void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSum
 	vector<int> emptyVector;
 	int CurrentMin = -1;
 
-	//clear our grid everytime since we must recalculate our seam thread sums every time the grid changes
-	DynamicSums.clear();
-
 	//push our initial left column onto our 2d vector
 	for (int i = 0; i < Rows; ++i){
-		DynamicSums.push_back(emptyVector);
-		DynamicSums[i].push_back(Weighted[i][0]);
+		DynamicSums[i][0] = Weighted[i][0];
 	}
 
 	for (int j = 1; j < Columns; ++j){
@@ -341,7 +341,7 @@ void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSum
 				CurrentMin = min(CurrentMin, Weighted[i][j] + DynamicSums[i + 1][j - 1]);
 			}
 
-			DynamicSums[i].push_back(CurrentMin);
+			DynamicSums[i][j] = CurrentMin;
 		}
 	}
 
@@ -495,7 +495,7 @@ void RemoveHorizontalSeam(vector<vector<int>>& Picture, vector<vector<int>>& Wei
 			Picture[i][j] = Picture[i + 1][j];
 			Weighted[i][j] = Weighted[i + 1][j];
 		}
-		
+
 	}
 
 	//pop off the last vector in our matrices to delete a row
