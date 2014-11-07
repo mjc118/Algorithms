@@ -45,6 +45,7 @@ int main(int argc, char* argv[]){
 	ReadImg(argv, Picture, Rows, Columns);
 	WeightGrid(Picture, Weighted, Rows, Columns);
 
+	//create our dynamic summing grid
 	for (int i = 0; i < Rows; ++i){
 		DynamicSums.push_back(emptyVector);
 		for (int j = 0; j < Columns; ++j){
@@ -58,8 +59,8 @@ int main(int argc, char* argv[]){
 			cout << "There are not that many Vertical Seams in the Picture!\n";
 			break;
 		}
-		cout << "Vertical Seam:" << i + 1 << endl;
 
+		cout << "Vertical Seam:" << i + 1 << endl;
 		SumTopDown(Weighted, DynamicSums, Rows, Columns);
 		RemoveVerticalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	}
@@ -70,8 +71,8 @@ int main(int argc, char* argv[]){
 			cout << "There are not that many Horizontal Seams in the Picture!\n";
 			break;
 		}
-		cout << "Horizontal Seam:" << i + 1 << endl;
 
+		cout << "Horizontal Seam:" << i + 1 << endl;
 		SumLeftRight(Weighted, DynamicSums, Rows, Columns);
 		RemoveHorizontalSeam(Picture, Weighted, DynamicSums, Rows, Columns);
 	}
@@ -282,7 +283,7 @@ void SumTopDown(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSums,
 	vector<int> emptyVector;
 	int CurrentMin = -1;
 
-	//push back our initial row
+	//set our initial row
 	for (int i = 0; i < Columns; ++i){
 		DynamicSums[0][i] = Weighted[0][i];
 	}
@@ -317,7 +318,8 @@ void SumLeftRight(vector<vector<int>>& Weighted, vector<vector<int>>& DynamicSum
 	vector<int> emptyVector;
 	int CurrentMin = -1;
 
-	//push our initial left column onto our 2d vector
+
+	//set our initial left column onto our 2d vector
 	for (int i = 0; i < Rows; ++i){
 		DynamicSums[i][0] = Weighted[i][0];
 	}
