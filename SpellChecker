@@ -1,0 +1,160 @@
+#include <iostream>
+#include <fstream>
+#include <algorithm>
+#include <string>
+#include <set>
+
+using namespace std;
+
+void SpellCheckWord(set<string> & Dict, int(&AlignArr)[40][40]);
+void SpellCheckDocument(set<string> & Dict, int(&AlignArr)[40][40]);
+void FindWords(CorrectSpelling (&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]);
+int AlignWords(string UserInput, string DictInput, int (&AlignArr)[40][40]);
+void SortWords(CorrectSpelling(&Words)[5]);
+
+struct CorrectSpelling{
+	string word;
+	int score;
+
+	CorrectSpelling() :word(""), score(0){};
+	CorrectSpelling(string w, int s) :word(w), score(s){};
+};
+
+int main(){
+	int AlignmentArray[40][40];
+	set<string> Dictionary;
+	ifstream input("en_US_processed.dic");
+	string line;
+	int Choice;
+	bool Continue = true;
+	
+	cout << "Please wait while the Dictionary is populated.\n\n";
+	while (getline(input, line)){
+		Dictionary.insert(line);
+	}
+	input.close();
+	
+
+	while(Continue){
+		cout << "\t Spell Checker\n" << "-------------------------\n";
+		cout << "1) Spell Check Single Words\n" << "2) Spell Check an entire text document\n";
+		cout << "3) Exit Program\n" << "-------------------------\n\n";
+		cin >> Choice;
+
+		switch (Choice){
+		case 1: SpellCheckWord(Dictionary, AlignmentArray);
+			break;
+		case 2: SpellCheckDocument(Dictionary, AlignmentArray);
+			break;
+		case 3: Continue = false;
+			break;
+		default: cout << "Please select a proper option from the menu\n";
+			break;
+		}
+	}
+	/*cin >> line;
+	while (line != "000"){
+		if (Dictionary.find(line) != Dictionary.end()){
+			cout << "Is in the Dictionary\n";
+		}
+		else{
+			cout << "Is not in the Dictionary\n Would you like to add it?";
+			cin >> ans;
+			if (ans)
+				Dictionary.insert(line);
+			ans = false;
+		}
+		cin >> line;
+	}*/
+
+	/*for (auto i : Dictionary){
+		output << i << endl;
+	}
+
+	output.close();*/
+	return 0;
+}
+
+void SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
+	CorrectSpelling WordArray[5];
+	string Input = "";
+
+	while (true){
+		cout << "Input word to be spell check, or 'leave' to exit\n";
+		cin >> Input;
+
+		if (Input == "leave")
+			break;
+
+		if (Dict.find(Input) != Dict.end()){
+			cout << "Spelled Correctly\n";
+		}
+		else{
+			FindWords(WordArray, Input, Dict, AlignArr);
+		}
+
+	}
+
+
+
+}
+
+void SpellCheckDocument(set<string> &Dict, int(&AlignArr)[40][40]){
+
+}
+
+void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]){
+	int numWords = 0, temp = 0;
+	
+	for (auto iter = Dict.begin(); iter != Dict.end(); ++iter){
+		temp = AlignWords(UserInput, *iter, AlignArr);
+		if (numWords != 5){
+			Words[numWords].word = *iter;
+			Words[numWords].score = temp;
+			++numWords;
+			if (numWords == 5){//sort our array once we are full
+				SortWords(Words);
+			}
+		}
+		else if (temp > Words[4].score){
+			Words[4].word = *iter;
+			Words[4].score = temp;
+			SortWords(Words);//sort our array if we ever add a word
+		}
+	}
+
+}
+
+int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]){
+	UserInput = "_" + UserInput;
+	DictInput = "_" + DictInput;
+	int UserLength = UserInput.length();
+	int DictLength = DictInput.length();
+	int MatchScore;
+	//match: +1, mismatch: -1, gap: -8
+
+	//set our initial row
+	for (int i = 0; i < UserLength; ++i){
+		AlignArr[0][i] = i * -8;
+	}
+
+	//set our initial column
+	for (int i = 0; i < DictLength; ++i){
+		AlignArr[i][0] = i * -8;
+	}
+
+	int i, j;
+
+	for (i = 1; i < DictLength; ++i){
+		for (j = 1; j < UserLength; ++j){
+			MatchScore = (DictInput[i] == UserInput[j] ? 1 : -1);
+			AlignArr[i][j] = max(MatchScore + AlignArr[i - 1][j - 1], max(-8 + AlignArr[i - 1][j], -8 + AlignArr[i][j - 1]));
+		}
+	}
+
+	return AlignArr[i - 1][j - 1];
+}
+
+void SortWords(CorrectSpelling(&Words)[5]){
+
+}
