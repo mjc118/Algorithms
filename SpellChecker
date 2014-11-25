@@ -6,10 +6,12 @@
 
 using namespace std;
 
+struct CorrectSpelling;
+
 void SpellCheckWord(set<string> & Dict, int(&AlignArr)[40][40]);
 void SpellCheckDocument(set<string> & Dict, int(&AlignArr)[40][40]);
-void FindWords(CorrectSpelling (&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]);
-int AlignWords(string UserInput, string DictInput, int (&AlignArr)[40][40]);
+void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]);
+int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]);
 void SortWords(CorrectSpelling(&Words)[5]);
 
 struct CorrectSpelling{
@@ -27,15 +29,15 @@ int main(){
 	string line;
 	int Choice;
 	bool Continue = true;
-	
+
 	cout << "Please wait while the Dictionary is populated.\n\n";
 	while (getline(input, line)){
 		Dictionary.insert(line);
 	}
 	input.close();
-	
 
-	while(Continue){
+
+	while (Continue){
 		cout << "\t Spell Checker\n" << "-------------------------\n";
 		cout << "1) Spell Check Single Words\n" << "2) Spell Check an entire text document\n";
 		cout << "3) Exit Program\n" << "-------------------------\n\n";
@@ -54,21 +56,21 @@ int main(){
 	}
 	/*cin >> line;
 	while (line != "000"){
-		if (Dictionary.find(line) != Dictionary.end()){
-			cout << "Is in the Dictionary\n";
-		}
-		else{
-			cout << "Is not in the Dictionary\n Would you like to add it?";
-			cin >> ans;
-			if (ans)
-				Dictionary.insert(line);
-			ans = false;
-		}
-		cin >> line;
+	if (Dictionary.find(line) != Dictionary.end()){
+	cout << "Is in the Dictionary\n";
+	}
+	else{
+	cout << "Is not in the Dictionary\n Would you like to add it?";
+	cin >> ans;
+	if (ans)
+	Dictionary.insert(line);
+	ans = false;
+	}
+	cin >> line;
 	}*/
 
 	/*for (auto i : Dictionary){
-		output << i << endl;
+	output << i << endl;
 	}
 
 	output.close();*/
@@ -80,7 +82,7 @@ void SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 	string Input = "";
 
 	while (true){
-		cout << "Input word to be spell check, or 'leave' to exit\n";
+		cout << "Input a word to be spell checked, or 'leave' to exit\n";
 		cin >> Input;
 
 		if (Input == "leave")
@@ -91,6 +93,10 @@ void SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 		}
 		else{
 			FindWords(WordArray, Input, Dict, AlignArr);
+			cout << "That word was spelled incorrectly...\n" << "Did you mean ...\n";
+			for (int i = 4; i >= 0; --i){
+				cout << WordArray[i].word << endl;
+			}
 		}
 
 	}
@@ -105,7 +111,7 @@ void SpellCheckDocument(set<string> &Dict, int(&AlignArr)[40][40]){
 
 void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]){
 	int numWords = 0, temp = 0;
-	
+
 	for (auto iter = Dict.begin(); iter != Dict.end(); ++iter){
 		temp = AlignWords(UserInput, *iter, AlignArr);
 		if (numWords != 5){
@@ -116,9 +122,9 @@ void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict,
 				SortWords(Words);
 			}
 		}
-		else if (temp > Words[4].score){
-			Words[4].word = *iter;
-			Words[4].score = temp;
+		else if (temp > Words[0].score){
+			Words[0].word = *iter;
+			Words[0].score = temp;
 			SortWords(Words);//sort our array if we ever add a word
 		}
 	}
@@ -156,5 +162,15 @@ int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]){
 }
 
 void SortWords(CorrectSpelling(&Words)[5]){
-
+	CorrectSpelling temp;
+	int i, j;
+	for (i = 1; i < 5; ++i){
+		temp = Words[i];
+		j = i;
+		while (j > 0 && Words[j - 1].score > temp.score){
+			Words[j] = Words[j - 1];
+			--j;
+		}
+		Words[j] = temp;
+	}
 }
