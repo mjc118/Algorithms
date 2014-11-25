@@ -2,17 +2,19 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <sstream>
 #include <set>
 
 using namespace std;
 
 struct CorrectSpelling;
 
-void SpellCheckWord(set<string> & Dict, int(&AlignArr)[40][40]);
+bool SpellCheckWord(set<string> & Dict, int(&AlignArr)[40][40]);
 void SpellCheckDocument(set<string> & Dict, int(&AlignArr)[40][40]);
 void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]);
 int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]);
 void SortWords(CorrectSpelling(&Words)[5]);
+void LoadLetterScoreGrid();
 
 struct CorrectSpelling{
 	string word;
@@ -22,13 +24,18 @@ struct CorrectSpelling{
 	CorrectSpelling(string w, int s) :word(w), score(s){};
 };
 
+//Global Letter Scoring Grid
+const int maxRows = 26;
+const int maxCols = 26;
+int LetterMatchScore[maxRows][maxCols];
+
 int main(){
 	int AlignmentArray[40][40];
 	set<string> Dictionary;
 	ifstream input("en_US_processed.dic");
 	string line;
 	int Choice;
-	bool Continue = true;
+	bool Continue = true, WriteBack = false;
 
 	cout << "Please wait while the Dictionary is populated.\n\n";
 	while (getline(input, line)){
@@ -36,50 +43,57 @@ int main(){
 	}
 	input.close();
 
+	//load in our specific letter scoring
+	LoadLetterScoreGrid();
 
+	
 	while (Continue){
 		cout << "\t Spell Checker\n" << "-------------------------\n";
 		cout << "1) Spell Check Single Words\n" << "2) Spell Check an entire text document\n";
 		cout << "3) Exit Program\n" << "-------------------------\n\n";
-		cin >> Choice;
-
-		switch (Choice){
-		case 1: SpellCheckWord(Dictionary, AlignmentArray);
-			break;
-		case 2: SpellCheckDocument(Dictionary, AlignmentArray);
-			break;
-		case 3: Continue = false;
-			break;
-		default: cout << "Please select a proper option from the menu\n";
-			break;
+		if (cin >> Choice){
+			switch (Choice){
+				case 1: {
+							if (SpellCheckWord(Dictionary, AlignmentArray)){ WriteBack = true; }
+							break;
+				}
+				case 2: {
+							SpellCheckDocument(Dictionary, AlignmentArray);
+							break;
+				}
+				case 3:{
+						   Continue = false;
+						   break;
+				}
+				default:{
+							cout << "Please select a proper option from the menu\n";
+							break;
+				}
+			}
+		}
+		else{ 
+			cout << "Improper Input Detected!\n";
+			cin.clear();
+			cin.ignore(100, '\n');
 		}
 	}
-	/*cin >> line;
-	while (line != "000"){
-	if (Dictionary.find(line) != Dictionary.end()){
-	cout << "Is in the Dictionary\n";
-	}
-	else{
-	cout << "Is not in the Dictionary\n Would you like to add it?";
-	cin >> ans;
-	if (ans)
-	Dictionary.insert(line);
-	ans = false;
-	}
-	cin >> line;
-	}*/
-
-	/*for (auto i : Dictionary){
-	output << i << endl;
+	
+	if (WriteBack){//if a word was inserted into our dictionary
+		ofstream output("en_US_processed.dic");
+		for (auto i : Dictionary){
+			output << i << endl;
+		}
+		output.close();
 	}
 
-	output.close();*/
 	return 0;
 }
 
-void SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
+bool SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 	CorrectSpelling WordArray[5];
 	string Input = "";
+	char Choice;
+	bool Inserted_Word = false;
 
 	while (true){
 		cout << "Input a word to be spell checked, or 'leave' to exit\n";
@@ -92,17 +106,23 @@ void SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 			cout << "Spelled Correctly\n";
 		}
 		else{
-			FindWords(WordArray, Input, Dict, AlignArr);
 			cout << "That word was spelled incorrectly...\n" << "Did you mean ...\n";
+			FindWords(WordArray, Input, Dict, AlignArr);
 			for (int i = 4; i >= 0; --i){
 				cout << WordArray[i].word << endl;
+			}
+			cout << "Or would you like to add that word to the Dictionary?(Y/N)\n";
+			cin >> Choice;
+			if (toupper(Choice) == 'Y'){
+				Dict.insert(Input);
+				cout << "Your word was successfully added!\n";
+				Inserted_Word = true;
 			}
 		}
 
 	}
 
-
-
+	return Inserted_Word;
 }
 
 void SpellCheckDocument(set<string> &Dict, int(&AlignArr)[40][40]){
@@ -153,7 +173,12 @@ int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]){
 
 	for (i = 1; i < DictLength; ++i){
 		for (j = 1; j < UserLength; ++j){
-			MatchScore = (DictInput[i] == UserInput[j] ? 1 : -1);
+			if (ispunct(DictInput[i]) || isdigit(DictInput[i]) || ispunct(UserInput[j]) || isdigit(UserInput[j])){
+				MatchScore = -4;//our character is a punctuation mark
+			}
+			else{
+				MatchScore = LetterMatchScore[tolower(DictInput[i]) - 97][tolower(UserInput[j]) - 97];
+			}
 			AlignArr[i][j] = max(MatchScore + AlignArr[i - 1][j - 1], max(-8 + AlignArr[i - 1][j], -8 + AlignArr[i][j - 1]));
 		}
 	}
@@ -173,4 +198,22 @@ void SortWords(CorrectSpelling(&Words)[5]){
 		}
 		Words[j] = temp;
 	}
+}
+
+void LoadLetterScoreGrid(){
+	ifstream Input("LetterGrid.txt");
+	string line;
+	int Row = 0;
+
+	while (getline(Input, line)){
+		//istringstream(integer converting string stream)
+		istringstream stream(line);
+
+		for (int i = 0; i < 26; ++i){
+			stream >> LetterMatchScore[Row][i];
+		}
+		++Row;
+	}
+
+	Input.close();
 }
