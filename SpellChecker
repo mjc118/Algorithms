@@ -126,6 +126,10 @@ bool SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 }
 
 void SpellCheckDocument(set<string> &Dict, int(&AlignArr)[40][40]){
+	string FileName;
+	
+	cout << "Input the name of the text file to be spell checked\n";
+	cin >> FileName;
 
 }
 
