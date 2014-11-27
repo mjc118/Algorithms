@@ -2,7 +2,10 @@
 #include <fstream>
 #include <algorithm>
 #include <string>
+#include <locale>
+#include <functional>
 #include <sstream>
+#include <vector>
 #include <set>
 
 using namespace std;
@@ -11,10 +14,11 @@ struct CorrectSpelling;
 
 bool SpellCheckWord(set<string> & Dict, int(&AlignArr)[40][40]);
 void SpellCheckDocument(set<string> & Dict, int(&AlignArr)[40][40]);
-void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]);
+void FindWords(vector<CorrectSpelling> & Words, string UserInput, set<string> & Dict, int(&AlignArr)[40][40]);
 int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]);
-void SortWords(CorrectSpelling(&Words)[5]);
+void SortWords(vector <CorrectSpelling>& Words);
 void LoadLetterScoreGrid();
+void Strip(string &Str);
 
 struct CorrectSpelling{
 	string word;
@@ -46,38 +50,38 @@ int main(){
 	//load in our specific letter scoring
 	LoadLetterScoreGrid();
 
-	
+
 	while (Continue){
 		cout << "\t Spell Checker\n" << "-------------------------\n";
 		cout << "1) Spell Check Single Words\n" << "2) Spell Check an entire text document\n";
 		cout << "3) Exit Program\n" << "-------------------------\n\n";
 		if (cin >> Choice){
 			switch (Choice){
-				case 1: {
-							if (SpellCheckWord(Dictionary, AlignmentArray)){ WriteBack = true; }
-							break;
-				}
-				case 2: {
-							SpellCheckDocument(Dictionary, AlignmentArray);
-							break;
-				}
-				case 3:{
-						   Continue = false;
-						   break;
-				}
-				default:{
-							cout << "Please select a proper option from the menu\n";
-							break;
-				}
+			case 1: {
+						if (SpellCheckWord(Dictionary, AlignmentArray)){ WriteBack = true; }
+						break;
+			}
+			case 2: {
+						SpellCheckDocument(Dictionary, AlignmentArray);
+						break;
+			}
+			case 3:{
+					   Continue = false;
+					   break;
+			}
+			default:{
+						cout << "Please select a proper option from the menu\n";
+						break;
+			}
 			}
 		}
-		else{ 
+		else{
 			cout << "Improper Input Detected!\n";
 			cin.clear();
 			cin.ignore(100, '\n');
 		}
 	}
-	
+
 	if (WriteBack){//if a word was inserted into our dictionary
 		ofstream output("en_US_processed.dic");
 		for (auto i : Dictionary){
@@ -90,7 +94,7 @@ int main(){
 }
 
 bool SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
-	CorrectSpelling WordArray[5];
+	vector <CorrectSpelling> WordVector(5);
 	string Input = "";
 	char Choice;
 	bool Inserted_Word = false;
@@ -107,9 +111,9 @@ bool SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 		}
 		else{
 			cout << "That word was spelled incorrectly...\n" << "Did you mean ...\n";
-			FindWords(WordArray, Input, Dict, AlignArr);
+			FindWords(WordVector, Input, Dict, AlignArr);
 			for (int i = 4; i >= 0; --i){
-				cout << WordArray[i].word << endl;
+				cout << WordVector[i].word << endl;
 			}
 			cout << "Or would you like to add that word to the Dictionary?(Y/N)\n";
 			cin >> Choice;
@@ -126,14 +130,64 @@ bool SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 }
 
 void SpellCheckDocument(set<string> &Dict, int(&AlignArr)[40][40]){
-	string FileName;
-	
+	vector<CorrectSpelling> WordVector(5);
+	vector< vector<string> > MisspelledWords;
+	vector< string > temp;//used to push back an empty vector
+	vector< vector<CorrectSpelling> > PossibleSpellings;
+	int WhichLine = 0;
+	string FileName, line, Word;
+	ifstream InputFile;
+	ofstream OutputFile;
 	cout << "Input the name of the text file to be spell checked\n";
 	cin >> FileName;
 
+	InputFile.open(FileName);
+
+	if (InputFile.is_open()){
+		cout << "Please wait while your file is processed, this may take a bit...\n";
+		OutputFile.open(FileName.erase(FileName.size() - 4) + "_processed.txt");
+		while (getline(InputFile, line)){
+			stringstream strStream(line);
+			MisspelledWords.push_back(temp);
+			while (strStream >> Word){
+				OutputFile << Word << " ";
+				if (!(Dict.find(Word) != Dict.end())){
+					Strip(Word);//strip punctuation out of a word
+					FindWords(WordVector, Word, Dict, AlignArr);
+					PossibleSpellings.push_back(WordVector);
+					MisspelledWords[WhichLine].push_back(Word);
+				}
+			}
+			OutputFile << endl;
+			++WhichLine;
+		}
+
+		WhichLine = 0;//keeps track of which struct of correct spellings we are on
+		for (int i = 0; i < MisspelledWords.size(); ++i){
+			string TempString = to_string(i + 1);//which line of text the misspelled word came from
+			if (MisspelledWords[i].size() > 0){//if we have no misspelled words on a line print nothing
+				OutputFile << "\nLine " << TempString << " had the following Words Misspelled\n";
+			}
+			for (int j = 0; j < MisspelledWords[i].size(); ++j){
+				OutputFile << MisspelledWords[i][j] << ": Was misspelled, here are some possible correct spellings\n";
+				for (int m = 4; m >= 0; --m){
+					OutputFile << "\t" << PossibleSpellings[WhichLine][m].word << endl;
+				}
+				++WhichLine;
+			}
+		}
+		MisspelledWords.erase(MisspelledWords.begin(), MisspelledWords.end());
+		PossibleSpellings.erase(PossibleSpellings.begin(), PossibleSpellings.end());
+		cout << "File processing complete!\n\n";
+		OutputFile.close();
+	}
+	else{
+		cout << "Specified file failed to open or does not exist...\nReturning to Main Menu\n";
+		return;
+	}
 }
 
-void FindWords(CorrectSpelling(&Words)[5], string UserInput, set<string> & Dict, int(&AlignArr)[40][40]){
+void FindWords(vector <CorrectSpelling>& Words, string UserInput, set<string> & Dict, int(&AlignArr)[40][40]){
 	int numWords = 0, temp = 0;
 
 	for (auto iter = Dict.begin(); iter != Dict.end(); ++iter){
@@ -190,7 +244,7 @@ int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]){
 	return AlignArr[i - 1][j - 1];
 }
 
-void SortWords(CorrectSpelling(&Words)[5]){
+void SortWords(vector <CorrectSpelling>& Words){
 	CorrectSpelling temp;
 	int i, j;
 	for (i = 1; i < 5; ++i){
@@ -220,4 +274,13 @@ void LoadLetterScoreGrid(){
 	}
 
 	Input.close();
+}
+
+void Strip(string &Str){
+	string result;
+	result.reserve(Str.length());
+
+	remove_copy_if(Str.begin(), Str.end(), back_inserter(result), ptr_fun<int, int>(ispunct));
+	
+	Str = result;
 }
