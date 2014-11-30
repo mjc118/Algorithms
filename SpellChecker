@@ -100,7 +100,7 @@ bool SpellCheckWord(set<string> &Dict, int(&AlignArr)[40][40]){
 	bool Inserted_Word = false;
 
 	while (true){
-		cout << "Input a word to be spell checked, or 'leave' to exit\n";
+		cout << "\nInput a word to be spell checked, or 'leave' to exit\n";
 		cin >> Input;
 
 		if (Input == "leave")
@@ -215,16 +215,16 @@ int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]){
 	int UserLength = UserInput.length();
 	int DictLength = DictInput.length();
 	int MatchScore;
-	//match: +1, mismatch: -1, gap: -8
+	//match: +1, mismatch: -1, gap: -4
 
 	//set our initial row
 	for (int i = 0; i < UserLength; ++i){
-		AlignArr[0][i] = i * -8;
+		AlignArr[0][i] = i * -4;
 	}
 
 	//set our initial column
 	for (int i = 0; i < DictLength; ++i){
-		AlignArr[i][0] = i * -8;
+		AlignArr[i][0] = i * -4;
 	}
 
 	int i, j;
@@ -237,7 +237,7 @@ int AlignWords(string UserInput, string DictInput, int(&AlignArr)[40][40]){
 			else{
 				MatchScore = LetterMatchScore[tolower(DictInput[i]) - 97][tolower(UserInput[j]) - 97];
 			}
-			AlignArr[i][j] = max(MatchScore + AlignArr[i - 1][j - 1], max(-8 + AlignArr[i - 1][j], -8 + AlignArr[i][j - 1]));
+			AlignArr[i][j] = max(MatchScore + AlignArr[i - 1][j - 1], max(-4 + AlignArr[i - 1][j], -4 + AlignArr[i][j - 1]));
 		}
 	}
 
@@ -281,6 +281,6 @@ void Strip(string &Str){
 	result.reserve(Str.length());
 
 	remove_copy_if(Str.begin(), Str.end(), back_inserter(result), ptr_fun<int, int>(ispunct));
-	
+
 	Str = result;
 }
