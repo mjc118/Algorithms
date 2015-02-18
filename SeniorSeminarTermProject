@@ -1,0 +1,164 @@
+using System;
+using System.Net.Http;
+using System.Net.Http.Headers;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.IO;
+using System.Data.SqlClient;
+using MySql.Data.MySqlClient;
+
+namespace TermProject
+{
+     public struct Player
+    {
+         public Int64 account_id { get; set; }
+         public Int64 player_slot { get; set; }
+         public int hero_id {get; set;}
+    }
+
+    public class DotaMatch
+    {
+        public Int64 match_id {get; set;}
+        public Int64 match_seq_num { get; set; }
+        public Int64 start_time { get; set; }
+        public int lobby_type { get; set; }
+        public int radiant_team_id { get; set; }
+        public int dire_team_id { get; set; }
+        public List<Player> players { get; set; }
+    }
+
+    public class QueryResults
+    {
+        public int status { get; set; }
+        public int num_results { get; set; }
+        public int total_results { get; set; }
+        public int results_remaining { get; set; }
+        public List<DotaMatch> matches { get; set; }
+    }
+
+    public class Results
+    {
+        public QueryResults result { get; set; }
+    }
+
+    class Program
+    {
+        static void Main()
+        {
+            /*string myConnectionString = "server=localhost;uid=root;pwd=root;database=dota2;";
+            MySqlConnection conn = new MySqlConnection();
+            conn.ConnectionString = myConnectionString;
+            //MySqlDataReader rdr = null;
+            
+            conn.Open();
+
+            /*MySqlCommand cmd = new MySqlCommand("SELECT * FROM matches WHERE matches.matchID = 123", conn);
+
+            rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+            {
+                for (int i = 0; i < rdr.FieldCount; ++i)
+                {
+                    Console.WriteLine(rdr[i]);
+                }
+            }
+
+            rdr.Close();
+            cmd = new MySqlCommand("SELECT * FROM matches ORDER BY ID DESC LIMIT 0, 1", conn);
+            rdr = cmd.ExecuteReader();
+
+            while (rdr.Read())
+            {
+                for (int i = 0; i < rdr.FieldCount; ++i)
+                {
+                    Console.WriteLine(rdr[i]);
+                }
+            }
+
+            if (rdr != null)
+            {
+                rdr.Close();
+            }
+            if (conn != null)
+            {
+                conn.Close();
+            }*/
+
+            Results DeserializedResult = new Results();
+
+            RunAsync(DeserializedResult).Wait();
+        }
+
+        static async Task RunAsync(Results DeserializedResult)
+        {
+            using (var client = new HttpClient())
+            {
+                MySqlConnection conn = new MySqlConnection("server=localhost;uid=root;pwd=root;database=dota2;");
+                conn.Open();
+
+                //get the most recent match id that is in our database
+                MySqlCommand cmd = new MySqlCommand("SELECT * FROM matches ORDER BY ID DESC LIMIT 0, 1", conn);
+
+                MySqlDataReader Reader = null;
+                Reader = cmd.ExecuteReader();
+                Reader.Read();
+
+                //make our call to Dota2 WebApi with the most recent match from our database
+                string APIkey = "EA6E1DEE19CA7C5A3DA5D97DBAB56816";
+                //my domain name used with the API key
+                client.BaseAddress = new Uri("https://sites.google.com/site/mjcuakron/");
+
+                //HTTP GET
+                HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + APIkey + "&game_mode=7&min_players=10&matches_requested=2&start_at_match_id=" + (Reader.GetInt64("matchID") - 1).ToString());
+                //HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + APIkey + "&game_mode=7&min_players=10;");
+
+                //close our reader used to get the most recent match so that we can Insert into our Database farther down
+                if (Reader != null) { Reader.Close(); }
+
+                if (response.IsSuccessStatusCode)
+                {
+                    Stream receiveStream = await response.Content.ReadAsStreamAsync();
+                    StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8);
+                    string Text = readStream.ReadToEnd();
+                    Console.WriteLine(Text);
+
+                    DeserializedResult = JsonConvert.DeserializeObject<Results>(Text);
+                }
+                else
+                {
+                    Console.WriteLine(response.StatusCode);
+                }
+                string Dota2Insert = "INSERT INTO matches (matchID, matchSeqNum, startTime, lobbyType) VALUES (@matchID, @matchSeqNum, @startTime, @lobbyType)";
+                string PlayersInsert = "INSERT INTO players (matchID, accountID, playerSlot, heroID) VALUES (@matchID, @accountID, @playerSlot, @heroID)";
+                foreach(DotaMatch match in DeserializedResult.result.matches){
+                    
+                    cmd = new MySqlCommand(Dota2Insert, conn);
+                    cmd.Parameters.AddWithValue("@matchID", match.match_id);
+                    cmd.Parameters.AddWithValue("@matchSeqNum", match.match_seq_num);
+                    cmd.Parameters.AddWithValue("@startTime", match.start_time);
+                    cmd.Parameters.AddWithValue("@lobbyType", match.lobby_type);
+                    cmd.ExecuteNonQuery();
+
+                    for (int i = 0; i < 10; ++i)
+                    {
+
+                        cmd = new MySqlCommand(PlayersInsert, conn);
+                        cmd.Parameters.AddWithValue("@matchID", match.match_id);
+                        cmd.Parameters.AddWithValue("@accountID", match.players[i].account_id);
+                        cmd.Parameters.AddWithValue("@playerSlot", match.players[i].player_slot);
+                        cmd.Parameters.AddWithValue("@heroID", match.players[i].hero_id);
+                        cmd.ExecuteNonQuery();
+
+                    }
+                }
+
+                if (conn != null) { conn.Close(); }
+                Console.WriteLine("");
+            }
+        }
+    }
+}
