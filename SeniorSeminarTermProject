@@ -12,6 +12,7 @@ using MySql.Data.MySqlClient;
 
 namespace TermProject
 {
+    //classes used for grabbing match history
      public struct Player
     {
          public Int64 account_id { get; set; }
@@ -39,64 +40,129 @@ namespace TermProject
         public List<DotaMatch> matches { get; set; }
     }
 
-    public class Results
+    public class MatchHistoryResults
     {
         public QueryResults result { get; set; }
     }
+
+    //end of classes used for Match History
+    //classes for grabbing single Match Details
+    
+    public class AdditionalUnits
+    {
+        public string unitname { get; set; }
+        public int item_0 { get; set; }
+        public int item_1 { get; set; }
+        public int item_2 { get; set; }
+        public int item_3 { get; set; }
+        public int item_4 { get; set; }
+        public int item_5 { get; set; }
+    }
+
+    public class AbilityUpgrades
+    {
+        public int ability { get; set; }
+        public Int64 time { get; set; }
+        public int level { get; set; }
+    }
+
+    public class MatchDetailPlayers
+    {
+        public Int64 account_id { get; set; }
+        public Int64 player_slot { get; set; }
+        public int hero_id { get; set; }
+        public int item_0 { get; set; }
+        public int item_1 { get; set; }
+        public int item_2 { get; set; }
+        public int item_3 { get; set; }
+        public int item_4 { get; set; }
+        public int item_5 { get; set; }
+        public int kills { get; set; }
+        public int deaths { get; set; }
+        public int assists { get; set; }
+        public int leaver_status { get; set; }
+        public int gold { get; set; }
+        public int last_hits { get; set; }
+        public int denies { get; set; }
+        public int gold_per_min { get; set; }
+        public int xp_per_min { get; set; }
+        public int gold_spent { get; set; }
+        public Int64 hero_damage { get; set; }
+        public Int64 tower_damage { get; set; }
+        public Int64 hero_healing { get; set; }
+        public int level { get; set; }
+        public List<AbilityUpgrades> ability_upgrades { get; set; }
+        public List<AdditionalUnits> additional_units { get; set; }
+    }
+
+    public class MatchDetailResults
+    {
+        public List<MatchDetailPlayers> players { get; set; }
+        //public Int64 season { get; set; }
+        public bool radiant_win { get; set; }
+        public Int64 duration { get; set; }
+        public Int64 start_time { get; set; }
+        public Int64 match_id { get; set; }
+        public Int64 match_seq_num { get; set; }
+        public int tower_status_radiant { get; set; }
+        public int tower_status_dire { get; set; }
+        public int barracks_status_radiant { get; set; }
+        public int barracks_status_dire { get; set; }
+        public int cluster { get; set; }
+        public Int64 first_blood_time { get; set; }
+        public int lobby_type { get; set; }
+        public int human_players { get; set; }
+        public int leagueid { get; set; }
+        public int positive_votes { get; set; }
+        public int negative_votes { get; set; }
+        public int game_mode { get; set; }
+    }
+
+    public class MatchDetailQueryResults
+    {
+        public MatchDetailResults result { get; set; }
+    }
+
+    //end of classes used for Match Details
+    //classes for Hero Details
+
+    public class HeroDetails
+    {
+        public string name { get; set; }
+        public int id { get; set; }
+        public string localized_name { get; set; }
+    }
+
+    public class HeroList
+    {
+        public List<HeroDetails> heroes { get; set; }
+        public int status { get; set; }
+        public int count { get; set; }
+    }
+
+    public class HeroResults
+    {
+        public HeroList result { get; set; }
+    }
+
+    //end of classes for HeroResults
 
     class Program
     {
         static void Main()
         {
-            /*string myConnectionString = "server=localhost;uid=root;pwd=root;database=dota2;";
-            MySqlConnection conn = new MySqlConnection();
-            conn.ConnectionString = myConnectionString;
-            //MySqlDataReader rdr = null;
-            
-            conn.Open();
-
-            /*MySqlCommand cmd = new MySqlCommand("SELECT * FROM matches WHERE matches.matchID = 123", conn);
-
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                for (int i = 0; i < rdr.FieldCount; ++i)
-                {
-                    Console.WriteLine(rdr[i]);
-                }
-            }
-
-            rdr.Close();
-            cmd = new MySqlCommand("SELECT * FROM matches ORDER BY ID DESC LIMIT 0, 1", conn);
-            rdr = cmd.ExecuteReader();
-
-            while (rdr.Read())
-            {
-                for (int i = 0; i < rdr.FieldCount; ++i)
-                {
-                    Console.WriteLine(rdr[i]);
-                }
-            }
-
-            if (rdr != null)
-            {
-                rdr.Close();
-            }
-            if (conn != null)
-            {
-                conn.Close();
-            }*/
-
-            Results DeserializedResult = new Results();
+            MatchHistoryResults DeserializedResult = new MatchHistoryResults();
 
             RunAsync(DeserializedResult).Wait();
         }
 
-        static async Task RunAsync(Results DeserializedResult)
+        static async Task RunAsync(MatchHistoryResults DeserializedResult)
         {
             using (var client = new HttpClient())
             {
+                MatchDetailQueryResults DeserializedDetails = new MatchDetailQueryResults();
+                HeroResults DeserializedHeroResults = new HeroResults();
+
                 MySqlConnection conn = new MySqlConnection("server=localhost;uid=root;pwd=root;database=dota2;");
                 conn.Open();
 
@@ -113,8 +179,12 @@ namespace TermProject
                 client.BaseAddress = new Uri("https://sites.google.com/site/mjcuakron/");
 
                 //HTTP GET
-                HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + APIkey + "&game_mode=7&min_players=10&matches_requested=2&start_at_match_id=" + (Reader.GetInt64("matchID") - 1).ToString());
-                //HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + APIkey + "&game_mode=7&min_players=10;");
+                //request two matches that follow the most recent one in the database
+                //HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + APIkey + "&game_mode=7&min_players=10&matches_requested=1&start_at_match_id=" + (Reader.GetInt64("matchID") - 1).ToString());
+                //request 1 match no regards to what id we start at
+                //HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + APIkey + "&game_mode=7&min_players=10&matches_requested=1");
+                HttpResponseMessage response = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchHistory/V001/?key=" + 
+                    APIkey + "&lobby_type=7&game_mode=1&min_players=10&matches_requested=2&skill=3&start_at_match_id=" + (Reader.GetInt64("matchID") - 1).ToString());
 
                 //close our reader used to get the most recent match so that we can Insert into our Database farther down
                 if (Reader != null) { Reader.Close(); }
@@ -126,39 +196,123 @@ namespace TermProject
                     string Text = readStream.ReadToEnd();
                     Console.WriteLine(Text);
 
-                    DeserializedResult = JsonConvert.DeserializeObject<Results>(Text);
+                    DeserializedResult = JsonConvert.DeserializeObject<MatchHistoryResults>(Text);
                 }
                 else
                 {
                     Console.WriteLine(response.StatusCode);
                 }
-                string Dota2Insert = "INSERT INTO matches (matchID, matchSeqNum, startTime, lobbyType) VALUES (@matchID, @matchSeqNum, @startTime, @lobbyType)";
-                string PlayersInsert = "INSERT INTO players (matchID, accountID, playerSlot, heroID) VALUES (@matchID, @accountID, @playerSlot, @heroID)";
+
+                string MatchHistoryInsert = "INSERT INTO matches (matchID, matchSeqNum, startTime, lobbyType) VALUES (@matchID, @matchSeqNum, @startTime, @lobbyType)";
+                
                 foreach(DotaMatch match in DeserializedResult.result.matches){
                     
-                    cmd = new MySqlCommand(Dota2Insert, conn);
+                    cmd = new MySqlCommand(MatchHistoryInsert, conn);
                     cmd.Parameters.AddWithValue("@matchID", match.match_id);
                     cmd.Parameters.AddWithValue("@matchSeqNum", match.match_seq_num);
                     cmd.Parameters.AddWithValue("@startTime", match.start_time);
                     cmd.Parameters.AddWithValue("@lobbyType", match.lobby_type);
                     cmd.ExecuteNonQuery();
 
-                    for (int i = 0; i < 10; ++i)
+                    //request detailed match details on currenty match id of our iteration
+                    HttpResponseMessage MatchDetails = await client.GetAsync("https://api.steampowered.com/IDOTA2Match_570/GetMatchDetails/V001/?key=" + APIkey + "&match_id=" + match.match_id.ToString());
+
+                    if (MatchDetails.IsSuccessStatusCode)
                     {
+                        Stream receiveStream = await MatchDetails.Content.ReadAsStreamAsync();
+                        StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8);
+                        string Text = readStream.ReadToEnd();
+                        Console.WriteLine(Text);
 
-                        cmd = new MySqlCommand(PlayersInsert, conn);
-                        cmd.Parameters.AddWithValue("@matchID", match.match_id);
-                        cmd.Parameters.AddWithValue("@accountID", match.players[i].account_id);
-                        cmd.Parameters.AddWithValue("@playerSlot", match.players[i].player_slot);
-                        cmd.Parameters.AddWithValue("@heroID", match.players[i].hero_id);
-                        cmd.ExecuteNonQuery();
-
+                        DeserializedDetails = JsonConvert.DeserializeObject<MatchDetailQueryResults>(Text);
                     }
+                    else
+                    {
+                        Console.WriteLine(response.StatusCode);
+                    }
+                
+                    string HeroWonDetailsUpdate = @"UPDATE herodetails
+                        SET Wins = Wins + 1, Kills = Kills + @Kill, Deaths = Deaths + @Death, Assists = Assists + @Assist, 
+                        MatchesPlayed = MatchesPlayed + 1 WHERE heroID = @ID";
+
+                    string HeroLossDetailsUpdate = @"UPDATE herodetails
+                        SET Losses = Losses + 1, Kills = Kills + @Kill, Deaths = Deaths + @Death, Assists = Assists + @Assist, 
+                        MatchesPlayed = MatchesPlayed + 1 WHERE heroID = @ID";
+
+                    //if the radiant won then the first five players should have their played
+                    //heroes awarded wins, otherwise they get losses and the second group of five players
+                    //get their heroes awarded wins and vice versa
+                    int PlayerWonStartIndex, PlayerLossStartIndex;
+                    if (DeserializedDetails.result.radiant_win)
+                    {
+                        PlayerWonStartIndex = 0;
+                        PlayerLossStartIndex = 5;
+                    }else{
+                        PlayerWonStartIndex = 5;
+                        PlayerLossStartIndex = 0;
+                    }
+                    
+                    //Query String Increments Wins
+                    for (int i = PlayerWonStartIndex; i < PlayerWonStartIndex + 5; ++i)
+                    {
+                        cmd = new MySqlCommand(HeroWonDetailsUpdate, conn);
+                        cmd.Parameters.AddWithValue("@Kill", DeserializedDetails.result.players[i].kills);
+                        cmd.Parameters.AddWithValue("@Death", DeserializedDetails.result.players[i].deaths);
+                        cmd.Parameters.AddWithValue("@Assist", DeserializedDetails.result.players[i].assists);
+                        cmd.Parameters.AddWithValue("@ID", DeserializedDetails.result.players[i].hero_id);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    //change the Query String to Increment Losses instead of Wins
+                    for (int i = PlayerLossStartIndex; i < PlayerLossStartIndex + 5; ++i)
+                    {
+                        cmd = new MySqlCommand(HeroLossDetailsUpdate, conn);
+                        cmd.Parameters.AddWithValue("@Kill", DeserializedDetails.result.players[i].kills);
+                        cmd.Parameters.AddWithValue("@Death", DeserializedDetails.result.players[i].deaths);
+                        cmd.Parameters.AddWithValue("@Assist", DeserializedDetails.result.players[i].assists);
+                        cmd.Parameters.AddWithValue("@ID", DeserializedDetails.result.players[i].hero_id);
+                        cmd.ExecuteNonQuery();
+                    }
+ 
+                    //query our next match id and get the details to update the database
                 }
 
                 if (conn != null) { conn.Close(); }
                 Console.WriteLine("");
+            
             }
         }
     }
 }
+
+//used to initialize the heroDatabase
+/*HttpResponseMessage HeroList = await client.GetAsync("https://api.steampowered.com/IEconDOTA2_570/GetHeroes/v0001/?key=" + APIkey + "&language=en_us");
+
+                if (HeroList.IsSuccessStatusCode)
+                {
+                    Stream receiveStream = await HeroList.Content.ReadAsStreamAsync();
+                    StreamReader readStream = new StreamReader(receiveStream, Encoding.UTF8);
+                    string Text = readStream.ReadToEnd();
+                    Console.WriteLine(Text);
+
+                    DeserializedHeroResults = JsonConvert.DeserializeObject<HeroResults>(Text);
+                }
+                else
+                {
+                    Console.WriteLine(response.StatusCode);
+                }*/
+
+//string HeroListInsert = "INSERT INTO herodetails (HeroName, HeroID, Wins, Losses, Kills, Deaths, Assists, MatchesPlayed) VALUES (@HeroName, @HeroID, @Wins, @Losses, @Kills, @Deaths, @Assists, @MatchesPlayed)";
+/*foreach (HeroDetails Hero in DeserializedHeroResults.result.heroes)
+              {
+                  cmd = new MySqlCommand(HeroListInsert, conn);
+                  cmd.Parameters.AddWithValue("@HeroName", Hero.localized_name);
+                  cmd.Parameters.AddWithValue("@HeroID", Hero.id);
+                  cmd.Parameters.AddWithValue("@Wins", 0);
+                  cmd.Parameters.AddWithValue("@Losses", 0);
+                  cmd.Parameters.AddWithValue("@Kills", 0);
+                  cmd.Parameters.AddWithValue("@Deaths", 0);
+                  cmd.Parameters.AddWithValue("@Assists", 0);
+                  cmd.Parameters.AddWithValue("@MatchesPlayed", 0);
+                  cmd.ExecuteNonQuery();
+              }*/
