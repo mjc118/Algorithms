@@ -1,0 +1,51 @@
+using UnityEngine;
+using System.Collections;
+
+public class MeshSortingLayer : MonoBehaviour {
+
+	public string sortingLayerName;       // The name of the sorting layer .
+	public int sortingOrder;      //The sorting order
+
+	public float WaveAmplitude;
+	public float WaveVelocity;
+	public float Lambda;
+	public float DecaySpeed;
+
+	float ElapsedTime;
+	float InitialCreationTime;
+
+	void Start ()
+	{
+		// Set the sorting layer and order.
+		renderer.sortingLayerName = sortingLayerName;
+		renderer.sortingOrder=sortingOrder;
+
+		InitialCreationTime = Time.time;
+	}
+
+	void Update(){
+		float Radius;
+		Mesh mesh = GetComponent<MeshFilter> ().mesh;
+		Vector3[] vertices = mesh.vertices;
+
+		ElapsedTime = Time.time - InitialCreationTime;
+
+		for(int i = 0; i < vertices.Length; ++i) {
+			Radius = Mathf.Sqrt(Mathf.Pow (vertices[i].x - 0.5f,2f) + Mathf.Pow (vertices[i].z - 0.5f,2f));
+			//if our wave has been in existence enough to have a radius as large as the possible
+			//alter those vertices
+			if(Radius >= WaveVelocity * ElapsedTime){
+				vertices[i].y = WaveAmplitude * Mathf.Exp (-Radius - (DecaySpeed * ElapsedTime)) *
+					Mathf.Cos (2 * Mathf.PI * ((Radius - (WaveVelocity * ElapsedTime)/Lambda)));
+			}else{
+				vertices[i].y /= 4f;
+			}
+		}
+
+		mesh.vertices = vertices;
+		mesh.RecalculateBounds();
+		mesh.RecalculateNormals();
+	}
+
+
+}
