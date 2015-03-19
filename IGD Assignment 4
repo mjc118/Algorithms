@@ -202,7 +202,7 @@ void display(){
 	}
 	//Eyes
 	glPushMatrix();
-	glTranslatef(0, 0.75 + CurrentJumpDistance, 0.09);
+	glTranslatef(0, 0.75 + CurrentJumpDistance + ((.4 - Y_eye_Scale)/4), 0.09);
 	glScalef(0.7, Y_eye_Scale, 0.7);
 	DrawPlane();
 	glPopMatrix();
@@ -269,6 +269,8 @@ void keyPressed(unsigned char key, int x, int y){
 		Blink = true;
 	else if (key == 'j')
 		Jump = true;
+	else if (key == 'q')
+		exit(0);
 	glutPostRedisplay();
 }
 
