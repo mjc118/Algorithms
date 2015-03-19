@@ -1,0 +1,305 @@
+#include <stdio.h>
+#include <iostream>
+#include <stdlib.h>
+#include <time.h>
+#include <math.h>
+#include <random>
+#include <glut.h>
+
+//Function Prototypes
+void display();
+void specialKeys();
+void keyPressed();
+void idle();
+void MakeRobotBodyPart();
+void DrawPlane();
+
+//Global Variables
+float RGBColor[] = { 0.6, 0.6, 0.6 };//gray by default
+
+/* for blinking */
+float Y_eye_Scale = 0.4;
+float BlinkRate = -0.0005;
+bool Blink = false;
+
+/* for jumping */
+float JumpHeightLimit = 0.5;//limit of our jump before we will descend
+float CurrentJumpDistance = 0;
+float JumpRate = 0.0005;
+bool Jump = false;
+
+struct vec3{
+	GLdouble x;
+	GLdouble y;
+	GLdouble z;
+};
+vec3 rotation;
+
+void MakeRobotBodyPart(){
+	//Multi-colored side - FRONT
+	//glBegin declares to start drawing a polygon with all points
+	//that are listed between glBegin and glEnd
+	
+	//glColor3f declares that every vertex after the declaration
+	//will be of that color (RGB)
+
+	//set the color for the rest of our sides to gray
+	glColor3f(RGBColor[0], RGBColor[1], RGBColor[2]);
+
+	//FRONT
+	glBegin(GL_POLYGON);
+	glVertex3f(0.5, -0.5, -0.5);	glVertex3f(0.5, 0.5, -0.5);		glVertex3f(-0.5, 0.5, -0.5);  	glVertex3f(-0.5, -0.5, -0.5);      
+	glEnd();
+
+	//BACK
+	glBegin(GL_POLYGON);
+	glVertex3f(0.5, -0.5, 0.5);		glVertex3f(0.5, 0.5, 0.5);		glVertex3f(-0.5, 0.5, 0.5);		glVertex3f(-0.5, -0.5, 0.5);
+	glEnd();
+
+	//RIGHT
+	glBegin(GL_POLYGON);
+	glVertex3f(0.5, -0.5, -0.5);	glVertex3f(0.5, 0.5, -0.5);		glVertex3f(0.5, 0.5, 0.5);		glVertex3f(0.5, -0.5, 0.5);
+	glEnd();
+
+	//LEFT
+	glBegin(GL_POLYGON);
+	glVertex3f(-0.5, -0.5, 0.5);	glVertex3f(-0.5, 0.5, 0.5);		glVertex3f(-0.5, 0.5, -0.5);	glVertex3f(-0.5, -0.5, -0.5);
+	glEnd();
+
+	//TOP
+	glBegin(GL_POLYGON);
+	glVertex3f(0.5, 0.5, 0.5);		glVertex3f(0.5, 0.5, -0.5);		glVertex3f(-0.5, 0.5, -0.5);	glVertex3f(-0.5, 0.5, 0.5);
+	glEnd();
+
+	//BOTTOM
+	glBegin(GL_POLYGON);
+	glVertex3f(0.5, -0.5, -0.5);	glVertex3f(0.5, -0.5, 0.5);		glVertex3f(-0.5, -0.5, 0.5);	glVertex3f(-0.5, -0.5, -0.5);
+	glEnd();
+
+	//setup for drawing lines
+	glLineWidth(2);
+	glColor3f(0, 0, 0);//black
+
+	//vertical lines along the sides of the cube
+	glBegin(GL_LINES);
+	glVertex3f(0.5, -0.5, -0.5);	glVertex3f(0.5, 0.5, -0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(0.5, -0.5, 0.5);	glVertex3f(0.5, 0.5, 0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(-0.5, -0.5, 0.5);	glVertex3f(-0.5, 0.5, 0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(-0.5, -0.5, -0.5);	glVertex3f(-0.5, 0.5, -0.5);
+	glEnd();
+
+	//horizontal lines around the top of the cube
+	glBegin(GL_LINES);
+	glVertex3f(0.5, 0.5, -0.5);	glVertex3f(0.5, 0.5, 0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(0.5, 0.5, 0.5);	glVertex3f(-0.5, 0.5, 0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(-0.5, 0.5, 0.5);	glVertex3f(-0.5, 0.5, -0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(-0.5, 0.5, -0.5);	glVertex3f(0.5, 0.5, -0.5);
+	glEnd();
+
+	//horizontal lines around the bottom of the cube
+	glBegin(GL_LINES);
+	glVertex3f(0.5, -0.5, -0.5);	glVertex3f(0.5, -0.5, 0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(0.5, -0.5, 0.5);	glVertex3f(-0.5, -0.5, 0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(-0.5, -0.5, 0.5);	glVertex3f(-0.5, -0.5, -0.5);
+	glEnd();
+
+	glBegin(GL_LINES);
+	glVertex3f(-0.5, -0.5, -0.5);	glVertex3f(0.5, -0.5, -0.5);
+	glEnd();
+}
+
+void DrawPlane(){
+	glColor3f(1, 0, 0);//red
+
+	glBegin(GL_POLYGON);
+	glVertex3f(0.2, 0.25, -0.5);	glVertex3f(0.2, 0.4, -0.5);		glVertex3f(0.1, 0.4, -0.5);	glVertex3f(0.1, 0.25, -0.5);
+	glEnd();
+
+	glBegin(GL_POLYGON);
+	glVertex3f(-0.2, 0.25, -0.5);	glVertex3f(-0.2, 0.4, -0.5);		glVertex3f(-0.1, 0.4, -0.5);	glVertex3f(-0.1, 0.25, -0.5);
+	glEnd();
+}
+
+void display(){
+
+	//Clear screen and Z-buffer
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	// Reset transformations
+	glLoadIdentity();
+
+	//use this length so that camera is 1 unit away fro origin
+	double dist = sqrt(1 / 100.0);
+
+	gluLookAt(dist / 10, -dist / 10, -dist / 10,  /* position of camera */
+		0.0, 0.0, 0.0,   /* where camera is pointing at */
+		0.0, 1.0, 0.0);  /* which direction is up */
+
+	// Other Transformations
+	glTranslatef(0.1, 0.0, 0.0);
+	glRotatef(180, 0.0, 1.0, 0.0);
+
+	// Rotate when user changes rotate_x and rotate_y
+	glRotatef(rotation.x, 1.0, 0.0, 0.0);
+	glRotatef(rotation.y, 0.0, 1.0, 0.0);
+	glRotatef(rotation.z, 0.0, 0.0, 1.0);
+	// Other Transformations
+	//glScalef( 2.0, 2.0, 0.0 );
+
+	if (Jump){
+		CurrentJumpDistance += JumpRate;
+
+		//once we've hit our limit or have reached our original position invert our rate and stop the loop
+		if (CurrentJumpDistance <= 0 || CurrentJumpDistance >= JumpHeightLimit){ JumpRate *= -1; }
+		if (CurrentJumpDistance <= 0){ Jump = false; }
+		glutPostRedisplay();
+	}
+	//Body
+	glPushMatrix();
+	glTranslatef(0, 0 + CurrentJumpDistance, 0);
+	glScalef(0.8, 1.2, 0.6);
+	MakeRobotBodyPart();
+	glPopMatrix();
+
+	//Head
+	glPushMatrix();
+	glTranslatef(0, 0.81 + CurrentJumpDistance, 0);
+	glScalef(0.5, 0.4, 0.5);
+	MakeRobotBodyPart();
+	glPopMatrix();
+	
+	if (Blink){
+		
+		Y_eye_Scale += BlinkRate;
+		//if we've hit zero or we've finished our blink we need to invert our rate
+		if (Y_eye_Scale <= 0 || Y_eye_Scale >= 0.4){ BlinkRate *= -1; }
+		if (Y_eye_Scale >= 0.4){ Blink = false; }
+		glutPostRedisplay();
+	}
+	//Eyes
+	glPushMatrix();
+	glTranslatef(0, 0.75 + CurrentJumpDistance, 0.09);
+	glScalef(0.7, Y_eye_Scale, 0.7);
+	DrawPlane();
+	glPopMatrix();
+
+	//Right Arm
+	glPushMatrix();
+	glTranslatef(-0.51, 0 + CurrentJumpDistance, 0);
+	glScalef(0.2, 1, 0.2);
+	MakeRobotBodyPart();
+	glPopMatrix();
+
+	//Left Arm
+	glPushMatrix();
+	glTranslatef(0.51, 0 + CurrentJumpDistance, 0);
+	glScalef(0.2, 1, 0.2);
+	MakeRobotBodyPart();
+	glPopMatrix();
+
+	//Right Leg
+	glPushMatrix();
+	glTranslatef(-0.25, -1.15 + CurrentJumpDistance, 0);
+	glScalef(0.2, 1.2, 0.2);
+	MakeRobotBodyPart();
+	glPopMatrix();
+
+	//Left Leg
+	glPushMatrix();
+	glTranslatef(0.25, -1.15 + CurrentJumpDistance, 0);
+	glScalef(0.2, 1.2, 0.2);
+	MakeRobotBodyPart();
+	glPopMatrix();
+
+	glFlush();
+	glutSwapBuffers();
+}
+
+void specialKeys(int key, int x, int y){
+	//  Right arrow - increase rotation by 5 degree
+	if (key == GLUT_KEY_RIGHT)
+		rotation.y += 5;
+
+	//  Left arrow - decrease rotation by 5 degree
+	else if (key == GLUT_KEY_LEFT)
+		rotation.y -= 5;
+
+	else if (key == GLUT_KEY_UP)
+		rotation.x += 5;
+
+	else if (key == GLUT_KEY_DOWN)
+		rotation.x -= 5;
+
+	//  Request display update
+	glutPostRedisplay();
+}
+
+void keyPressed(unsigned char key, int x, int y){
+	if (key == 'z')
+		rotation.z += 5;
+	else if (key == 'c'){
+		for (int i = 0; i < 3; ++i)
+			RGBColor[i] = static_cast <float> (rand()) / static_cast <float> (RAND_MAX);
+	}
+	else if (key == 'b')
+		Blink = true;
+	else if (key == 'j')
+		Jump = true;
+	glutPostRedisplay();
+}
+
+void idle(){
+	rotation.y += 0.05;
+	glutPostRedisplay();
+}
+
+int main(int argc, char* argv[]){
+	srand(time(NULL));//seed random number generation for random colors
+	//Initialize GLUT and process user parameters
+	glutInit(&argc, argv);
+	glutInitWindowSize(480, 480);
+
+	//Request double buffered true color window with Z-buffer
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB | GLUT_DEPTH);
+
+	//Create Window
+	glutCreateWindow("Awesome Cube");
+
+	//Enable Z-buffer depth test
+	glEnable(GL_DEPTH_TEST);
+
+	//Callback functions
+	glutDisplayFunc(display);
+	glutSpecialFunc(specialKeys);
+	glutKeyboardFunc(keyPressed);
+	//glutIdleFunc(idle);
+
+	//Pass control to GLUT for events
+	glutMainLoop();
+
+	return 0;
+}
