@@ -28,6 +28,15 @@ float CurrentJumpDistance = 0;
 float JumpRate = 0.0005;
 bool Jump = false;
 
+/* for Waving */
+//Complete Waves Consist of rotating all the way back to 225 and then to 180
+float CurrentWaveDegree = 0;
+float RotationIncrement = .1;
+int NumberOfCompleteWaves = 5;
+int CurrentNumberOfCompleteWaves = 0;
+bool Wave = false;
+bool Towards225 = true;
+
 struct vec3{
 	GLdouble x;
 	GLdouble y;
@@ -210,8 +219,25 @@ void display(){
 	//Right Arm
 	glPushMatrix();
 	glTranslatef(-0.51, 0 + CurrentJumpDistance, 0);
+	if (Wave){
+		if (CurrentWaveDegree >= 225){ RotationIncrement *= -1; Towards225 = false; }
+		else if (!Towards225 && CurrentWaveDegree <= 145 && CurrentNumberOfCompleteWaves < 6){
+			++CurrentNumberOfCompleteWaves;
+			Towards225 = true;
+			RotationIncrement *= -1;
+		}
+
+		CurrentWaveDegree += RotationIncrement;
+
+		glTranslatef(0, 0.45, -0.0);
+		glRotatef(CurrentWaveDegree, 1.0, 0.0, 0.0);
+		glTranslatef(0, -0.45, 0.0);
+
+		if (CurrentWaveDegree <= 0){ Wave = false; RotationIncrement = 0.1; Towards225 = true; CurrentNumberOfCompleteWaves = 0; }
+		glutPostRedisplay();
+	}
 	glScalef(0.2, 1, 0.2);
-	MakeRobotBodyPart();
+	MakeRobotBodyPart();w
 	glPopMatrix();
 
 	//Left Arm
@@ -269,6 +295,8 @@ void keyPressed(unsigned char key, int x, int y){
 		Blink = true;
 	else if (key == 'j')
 		Jump = true;
+	else if (key == 'w')
+		Wave = true;
 	else if (key == 'q')
 		exit(0);
 	glutPostRedisplay();
