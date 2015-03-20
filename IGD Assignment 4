@@ -32,10 +32,17 @@ bool Jump = false;
 //Complete Waves Consist of rotating all the way back to 225 and then to 180
 float CurrentWaveDegree = 0;
 float RotationIncrement = 0.1;
-int NumberOfCompleteWaves = 5;
 int CurrentNumberOfCompleteWaves = 0;
 bool Wave = false;
-bool Towards225 = true;
+bool Towards225 = true;//if we are incrementing towards degree 225 don't invert our increment 
+//when initially passing our forward wave limit of 145 degrees
+
+/* for Running */
+float CurrentRunDegree = 0;
+float RunRotationIncrement = 0.1;
+int CurrentNumberofLegMotions = 0;
+bool Run = false;
+bool Towards45 = true;
 
 /* for Turning Around */
 float CurrentTurnDegree = 0;//180 is when we stop
@@ -269,7 +276,31 @@ void display(){
 	//Right Leg
 	glPushMatrix();
 	glRotatef(OverallDegreesTurned, 0, 1, 0);
-	glTranslatef(-0.25, -1.15 + CurrentJumpDistance, 0);
+	glTranslatef(-0.25, -1.1 + CurrentJumpDistance, 0);
+
+	if (Run){
+		if (CurrentRunDegree >= 45){ RunRotationIncrement *= -1; Towards45 = false; }
+		else if (!Towards45 && CurrentRunDegree <= -45){
+			++CurrentNumberofLegMotions;
+			Towards45 = true;
+			RunRotationIncrement *= -1;
+		}
+
+		CurrentRunDegree += RunRotationIncrement;
+
+		glTranslatef(0, 0.45, -0.0);
+		glRotatef(CurrentRunDegree, 1.0, 0.0, 0.0);
+		glTranslatef(0, -0.45, 0.0);
+
+		if (CurrentRunDegree > -0.1 && CurrentRunDegree < 0.1 && CurrentNumberofLegMotions > 6){ 
+			Run = false; 
+			RunRotationIncrement = 0.1; 
+			Towards45 = true; 
+			CurrentNumberofLegMotions = 0;
+		}
+		glutPostRedisplay();
+	}
+
 	glScalef(0.2, 1.2, 0.2);
 	MakeRobotBodyPart();
 	glPopMatrix();
@@ -277,7 +308,12 @@ void display(){
 	//Left Leg
 	glPushMatrix();
 	glRotatef(OverallDegreesTurned, 0, 1, 0);
-	glTranslatef(0.25, -1.15 + CurrentJumpDistance, 0);
+	glTranslatef(0.25, -1.1 + CurrentJumpDistance, 0);
+
+	glTranslatef(0, 0.45, -0.0);
+	glRotatef(CurrentRunDegree * -1, 1.0, 0.0, 0.0);
+	glTranslatef(0, -0.45, 0.0);
+
 	glScalef(0.2, 1.2, 0.2);
 	MakeRobotBodyPart();
 	glPopMatrix();
@@ -318,6 +354,8 @@ void keyPressed(unsigned char key, int x, int y){
 		Jump = true;
 	else if (key == 'w')
 		Wave = true;
+	else if (key == 'r')
+		Run = true;
 	else if (key == 't')
 		TurnAround = true;
 	else if (key == 'q')
