@@ -31,11 +31,17 @@ bool Jump = false;
 /* for Waving */
 //Complete Waves Consist of rotating all the way back to 225 and then to 180
 float CurrentWaveDegree = 0;
-float RotationIncrement = .1;
+float RotationIncrement = 0.1;
 int NumberOfCompleteWaves = 5;
 int CurrentNumberOfCompleteWaves = 0;
 bool Wave = false;
 bool Towards225 = true;
+
+/* for Turning Around */
+float CurrentTurnDegree = 0;//180 is when we stop
+float OverallDegreesTurned = 0;//keep track of how many degrees we've fully turned (multiple times turning)
+bool TurnAround = false;
+
 
 struct vec3{
 	GLdouble x;
@@ -187,8 +193,17 @@ void display(){
 		if (CurrentJumpDistance <= 0){ Jump = false; }
 		glutPostRedisplay();
 	}
+	if (TurnAround){
+		CurrentTurnDegree += 0.1;
+		OverallDegreesTurned += 0.1;
+		if (OverallDegreesTurned > 361){ OverallDegreesTurned = 0; }
+		if (CurrentTurnDegree >= 180){ CurrentTurnDegree = 0; TurnAround = false; }
+
+		glutPostRedisplay();
+	}
 	//Body
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(0, 0 + CurrentJumpDistance, 0);
 	glScalef(0.8, 1.2, 0.6);
 	MakeRobotBodyPart();
@@ -196,6 +211,7 @@ void display(){
 
 	//Head
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(0, 0.81 + CurrentJumpDistance, 0);
 	glScalef(0.5, 0.4, 0.5);
 	MakeRobotBodyPart();
@@ -211,6 +227,7 @@ void display(){
 	}
 	//Eyes
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(0, 0.75 + CurrentJumpDistance + ((.4 - Y_eye_Scale)/4), 0.09);
 	glScalef(0.7, Y_eye_Scale, 0.7);
 	DrawPlane();
@@ -218,6 +235,7 @@ void display(){
 
 	//Right Arm
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(-0.51, 0 + CurrentJumpDistance, 0);
 	if (Wave){
 		if (CurrentWaveDegree >= 225){ RotationIncrement *= -1; Towards225 = false; }
@@ -237,11 +255,12 @@ void display(){
 		glutPostRedisplay();
 	}
 	glScalef(0.2, 1, 0.2);
-	MakeRobotBodyPart();w
+	MakeRobotBodyPart();
 	glPopMatrix();
 
 	//Left Arm
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(0.51, 0 + CurrentJumpDistance, 0);
 	glScalef(0.2, 1, 0.2);
 	MakeRobotBodyPart();
@@ -249,6 +268,7 @@ void display(){
 
 	//Right Leg
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(-0.25, -1.15 + CurrentJumpDistance, 0);
 	glScalef(0.2, 1.2, 0.2);
 	MakeRobotBodyPart();
@@ -256,6 +276,7 @@ void display(){
 
 	//Left Leg
 	glPushMatrix();
+	glRotatef(OverallDegreesTurned, 0, 1, 0);
 	glTranslatef(0.25, -1.15 + CurrentJumpDistance, 0);
 	glScalef(0.2, 1.2, 0.2);
 	MakeRobotBodyPart();
@@ -297,6 +318,8 @@ void keyPressed(unsigned char key, int x, int y){
 		Jump = true;
 	else if (key == 'w')
 		Wave = true;
+	else if (key == 't')
+		TurnAround = true;
 	else if (key == 'q')
 		exit(0);
 	glutPostRedisplay();
