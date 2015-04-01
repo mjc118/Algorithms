@@ -137,7 +137,7 @@ namespace TermProject
                 Reader = cmd.ExecuteReader();
                 Reader.Read();
                 
-                string APIkey = "EA6E1DEE19CA7C5A3DA5D97DBAB56816";
+                string APIkey = "***********************";
 
                 //my domain name used with the API key
                 client.BaseAddress = new Uri("https://sites.google.com/site/mjcuakron/");
