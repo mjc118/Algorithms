@@ -66,7 +66,7 @@ GLfloat light_position[] = { 2.0, 5.0, 5.0, 0.0 };
 
 GLfloat mat_ambient[] = { 0.7, 0.7, 0.7, 1.0 };
 GLfloat mat_diffuse[] = { 0.8, 0.8, 0.8, 1.0 };
-GLfloat mat_specular[] = { 0.1, 0.1, 0.1, 1.0 };
+GLfloat mat_specular[] = { 0.9, 0.9, 0.9, 1.0 };
 
 
 void MakeRobotBodyPart(){
@@ -182,8 +182,29 @@ void display(){
 
 	//Clear screen and Z-buffer
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glShadeModel(GL_FLAT);
+	glShadeModel(GL_SMOOTH);
+	//glShadeModel(GL_FLAT);
+	//glEnable(GL_LIGHT0);
+
+	glEnable(GL_DEPTH_TEST);
+	glDepthFunc(GL_LESS);
+
+
 	glEnable(GL_LIGHT0);
+	glEnable(GL_COLOR_MATERIAL);
+	glEnable(GL_LIGHTING);
+	glEnable(GL_NORMALIZE);
+
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, ambient_light);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, diffusiveLight);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, specularLight);
+	glLightfv(GL_LIGHT0, GL_POSITION, light_position);
+
+	glMaterialfv(GL_FRONT, GL_AMBIENT, mat_ambient);
+	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
+	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
+	glMaterialfv(GL_FRONT, GL_SHININESS, materialShininess);
 
 	// Reset transformations
 	glLoadIdentity();
@@ -382,33 +403,36 @@ void keyPressed(unsigned char key, int x, int y){
 		if (diffusiveLight[0] + 0.1 > 1){
 			for (int i = 0; i < 3; ++i){
 				diffusiveLight[i] = 0;
-				mat_diffuse[i] = 0;
+				//mat_diffuse[i] = 0;
 			}
 		}
 		else{
 			for (int i = 0; i < 3; ++i){
 				diffusiveLight[i] += 0.1;
-				mat_diffuse[i] += 0.1;
+				//mat_diffuse[i] += 0.1;
 			}
 		}
+		std::cout << diffusiveLight[0] << std::endl;
 	}
 	else if (key == 's'){
 		if (specularLight[0] + 0.1 > 1){
 			for (int i = 0; i < 3; ++i){
 				specularLight[i] = 0;
-				mat_specular[i] = 0;
+				//mat_specular[i] = 0;
 			}
 		}
 		else{
 			for (int i = 0; i < 3; ++i){
 				specularLight[i] += 0.1;
-				mat_specular[i] += 0.1;
+				//mat_specular[i] += 0.1;
 			}
 		}
+		std::cout << specularLight[0] << std::endl;
 	}
 	else if (key == 'h'){
 		materialShininess[0] += 10;
 		if (materialShininess[0] > 100)materialShininess[0] = 0;
+		std::cout << materialShininess[0] << std::endl;
 	}
 	else if (key == 'q')
 		exit(0);
@@ -442,7 +466,7 @@ int main(int argc, char* argv[]){
 	//Enable Z-buffer depth test
 	glCullFace(GL_BACK);
 
-	glEnable(GL_DEPTH_TEST);
+	/*glEnable(GL_DEPTH_TEST);
 	glDepthFunc(GL_LESS);
 
 
@@ -461,7 +485,7 @@ int main(int argc, char* argv[]){
 	glMaterialfv(GL_FRONT, GL_DIFFUSE, mat_diffuse);
 	glMaterialfv(GL_FRONT, GL_SPECULAR, mat_specular);
 	glMaterialfv(GL_FRONT, GL_SHININESS, materialShininess);
-
+	*/
 	//Pass control to GLUT for events
 	glutMainLoop();
 
